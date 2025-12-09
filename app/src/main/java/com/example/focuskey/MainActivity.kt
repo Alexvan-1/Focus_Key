@@ -1,18 +1,18 @@
 package com.example.focuskey
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.TextView
+import android.view.animation.Animation
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.focuskey.databinding.ActivityMainBinding
+import com.example.focuskey.ui.achievements.AchievementsActivity
+import com.example.focuskey.ui.minigames.MinigamesActivity
+import com.example.focuskey.ui.timer.TimerActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,13 +31,42 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
+                R.id.navigation_achievements, R.id.navigation_timer, R.id.navigation_minigames
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        navView.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_achievements -> {
+                    switchFragment(AchievementsActivity())
+                    true
+                }
+                R.id.navigation_timer -> {
+                    switchFragment(TimerActivity())
+                    true
+                }
+                R.id.navigation_minigames -> {
+                    switchFragment(MinigamesActivity())
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
+    private fun switchFragment(fragment: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
 
+        transaction.setCustomAnimations(
+            R.anim.fade_in,
+            R.anim.fade_out,
+            R.anim.fade_in,
+            R.anim.fade_out
+        )
+
+        transaction.replace(R.id.nav_host_fragment_activity_main, fragment)
+        transaction.commit()
+    }
 }
