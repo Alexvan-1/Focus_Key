@@ -1,10 +1,10 @@
-package com.example.focuskey.ui.achievements
+package com.example.focuskey.ui.history
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class AchievementsLayout : ViewModel() {
+class HistoryLayout : ViewModel() {
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is home Fragment"

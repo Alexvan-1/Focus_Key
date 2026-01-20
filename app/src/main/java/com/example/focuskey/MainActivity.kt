@@ -1,7 +1,6 @@
 package com.example.focuskey
 
 import android.os.Bundle
-import android.view.animation.Animation
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -10,7 +9,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.focuskey.databinding.ActivityMainBinding
-import com.example.focuskey.ui.achievements.AchievementsActivity
+import com.example.focuskey.ui.history.HistoryActivity
 import com.example.focuskey.ui.minigames.MinigamesActivity
 import com.example.focuskey.ui.timer.TimerActivity
 
@@ -31,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_achievements, R.id.navigation_timer, R.id.navigation_minigames
+                R.id.navigation_history, R.id.navigation_timer, R.id.navigation_minigames
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -39,8 +38,8 @@ class MainActivity : AppCompatActivity() {
 
         navView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.navigation_achievements -> {
-                    switchFragment(AchievementsActivity())
+                R.id.navigation_history -> {
+                    switchFragment(HistoryActivity())
                     true
                 }
                 R.id.navigation_timer -> {

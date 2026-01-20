@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Focus Key</string>
-    <string name="title_achievements">Достижения</string>
+    <string name="title_history">История</string>
     <string name="title_timer">Таймер</string>
     <string name="title_minigames">Мини-игры</string>
 </resources>

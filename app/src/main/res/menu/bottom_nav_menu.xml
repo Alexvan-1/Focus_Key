@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_achievements"
-        android:icon="@drawable/achievements"
-        android:title="@string/title_achievements" />
+        android:id="@+id/navigation_history"
+        android:icon="@drawable/history"
+        android:title="@string/title_history" />
 
     <item
         android:id="@+id/navigation_timer"
