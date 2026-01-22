@@ -8,13 +8,15 @@ import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.forEach
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.example.focuskey.ui.timer.TimerStateListener
 import com.example.focuskey.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TimerStateListener  {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -39,5 +41,19 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun lockNavigation() {
+        val bottomNav = findViewById<BottomNavigationView>(R.id.nav_view)
+        bottomNav.isEnabled = false
+        bottomNav.menu.forEach { item ->
+            item.isEnabled = false
+        }
+    }
 
+    override fun unlockNavigation() {
+        val bottomNav = findViewById<BottomNavigationView>(R.id.nav_view)
+        bottomNav.isEnabled = true
+        bottomNav.menu.forEach { item ->
+            item.isEnabled = true
+        }
+    }
 }

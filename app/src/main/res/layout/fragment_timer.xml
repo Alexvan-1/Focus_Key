@@ -7,6 +7,19 @@
     tools:context=".ui.timer.TimerActivity">
 
     <TextView
+        android:id="@+id/stateText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="144dp"
+        android:text="           "
+        android:textColor="@color/on_primary_color"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.483"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
         android:id="@+id/timer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -39,7 +52,6 @@
         android:id="@+id/cancel_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:alpha="1"
         android:text="Отмена"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -53,7 +65,6 @@
         android:id="@+id/count_down"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:alpha="1"
         android:text="10"
         android:textSize="24sp"
         android:visibility="invisible"
@@ -63,6 +74,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.656" />
+
+    <Button
+        android:id="@+id/pause_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0"
+        android:text="Пауза"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.51"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.658" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

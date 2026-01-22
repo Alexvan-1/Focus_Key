@@ -8,8 +8,8 @@
 
     <Button
         android:id="@+id/back_button"
-        android:layout_width="90dp"
-        android:layout_height="46dp"
+        android:layout_width="96dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:text="Назад"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -53,13 +53,81 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <HorizontalScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
+        android:layout_width="0dp"
+        android:layout_height="47dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.57">
+        app:layout_constraintVertical_bias="0.601">
+
+        <RadioGroup
+            android:id="@+id/tag_radio_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/tag_study"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Учёба"
+                android:button="@null"
+                android:background="@drawable/background"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginEnd="8dp" />
+
+            <RadioButton
+                android:id="@+id/tag_self_development"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Саморазвитие"
+                android:button="@null"
+                android:background="@drawable/background"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginEnd="8dp" />
+
+            <RadioButton
+                android:id="@+id/tag_sports"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Спорт"
+                android:button="@null"
+                android:background="@drawable/background"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginEnd="8dp" />
+
+            <RadioButton
+                android:id="@+id/tag_hobby"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Хобби"
+                android:button="@null"
+                android:background="@drawable/background"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginEnd="8dp" />
+
+            <RadioButton
+                android:id="@+id/tag_other"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="Другое"
+                android:button="@null"
+                android:background="@drawable/background"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+
+        </RadioGroup>
 
 
     </HorizontalScrollView>
