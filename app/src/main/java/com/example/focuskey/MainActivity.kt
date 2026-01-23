@@ -1,21 +1,19 @@
 package com.example.focuskey
 
 import android.os.Bundle
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.example.focuskey.databinding.ActivityMainBinding
 import com.example.focuskey.ui.history.HistoryActivity
 import com.example.focuskey.ui.minigames.MinigamesActivity
 import com.example.focuskey.ui.timer.TimerActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val fragments = mutableMapOf<Int, Fragment>()
+    private var currentTabId = R.id.navigation_timer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,49 +21,54 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        fragments[R.id.navigation_history] = HistoryActivity()
+        fragments[R.id.navigation_timer] = TimerActivity()
+        fragments[R.id.navigation_minigames] = MinigamesActivity()
+
+        supportFragmentManager.beginTransaction().apply {
+            add(R.id.fragment_container, fragments[R.id.navigation_timer]!!, "timer")
+            add(R.id.fragment_container, fragments[R.id.navigation_history]!!, "history").hide(fragments[R.id.navigation_history]!!)
+            add(R.id.fragment_container, fragments[R.id.navigation_minigames]!!, "minigames").hide(fragments[R.id.navigation_minigames]!!)
+        }.commit()
+
         val navView: BottomNavigationView = binding.navView
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_history, R.id.navigation_timer, R.id.navigation_minigames
-            )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
-
-        navView.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_history -> {
-                    switchFragment(HistoryActivity())
-                    true
-                }
-                R.id.navigation_timer -> {
-                    switchFragment(TimerActivity())
-                    true
-                }
-                R.id.navigation_minigames -> {
-                    switchFragment(MinigamesActivity())
-                    true
-                }
-                else -> false
-            }
+        navView.setOnItemSelectedListener { item ->
+            switchFragment(item.itemId)
+            true
         }
+
+        navView.selectedItemId = R.id.navigation_timer
+        supportActionBar?.title = "Таймер"
     }
 
-    private fun switchFragment(fragment: Fragment) {
+    private fun switchFragment(tabId: Int) {
+        if (tabId == currentTabId) return
+
         val transaction = supportFragmentManager.beginTransaction()
 
         transaction.setCustomAnimations(
-            R.anim.fade_in,
-            R.anim.fade_out,
-            R.anim.fade_in,
-            R.anim.fade_out
+            android.R.animator.fade_in,
+            android.R.animator.fade_out,
+            android.R.animator.fade_in,
+            android.R.animator.fade_out
         )
 
-        transaction.replace(R.id.nav_host_fragment_activity_main, fragment)
+        fragments[currentTabId]?.let { transaction.hide(it) }
+
+        fragments[tabId]?.let {
+            transaction.show(it)
+        }
+
         transaction.commit()
+        currentTabId = tabId
+
+        when(tabId) {
+            R.id.navigation_history -> supportActionBar?.title = "История"
+            R.id.navigation_timer -> supportActionBar?.title = "Таймер"
+            R.id.navigation_minigames -> supportActionBar?.title = "Мини-игры"
+        }
+
+
     }
 }

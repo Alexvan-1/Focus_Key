@@ -26,8 +26,6 @@ class TimerActivity : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val TimerLayout =
-            ViewModelProvider(this).get(TimerLayout::class.java)
 
         _binding = FragmentTimerBinding.inflate(inflater, container, false)
         val root: View = binding.root
