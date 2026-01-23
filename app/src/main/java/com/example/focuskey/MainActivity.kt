@@ -2,25 +2,22 @@ package com.example.focuskey
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.forEach
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.example.focuskey.data.KeyManager
-import com.example.focuskey.ui.timer.TimerStateListener
+import androidx.fragment.app.Fragment
 import com.example.focuskey.databinding.ActivityMainBinding
+import com.example.focuskey.ui.history.HistoryActivity
+import com.example.focuskey.ui.minigames.MinigamesActivity
+import com.example.focuskey.ui.timer.TimerActivity
+import com.example.focuskey.ui.timer.TimerStateListener
 
-class MainActivity : AppCompatActivity(), TimerStateListener  {
+class MainActivity : AppCompatActivity(), TimerStateListener {
 
     private lateinit var binding: ActivityMainBinding
+    private val fragments = mutableMapOf<Int, Fragment>()
+    private var currentTabId = R.id.navigation_timer
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,19 +31,25 @@ class MainActivity : AppCompatActivity(), TimerStateListener  {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        fragments[R.id.navigation_history] = HistoryActivity()
+        fragments[R.id.navigation_timer] = TimerActivity()
+        fragments[R.id.navigation_minigames] = MinigamesActivity()
+
+        supportFragmentManager.beginTransaction().apply {
+            add(R.id.fragment_container, fragments[R.id.navigation_timer]!!, "timer")
+            add(R.id.fragment_container, fragments[R.id.navigation_history]!!, "history").hide(fragments[R.id.navigation_history]!!)
+            add(R.id.fragment_container, fragments[R.id.navigation_minigames]!!, "minigames").hide(fragments[R.id.navigation_minigames]!!)
+        }.commit()
+
         val navView: BottomNavigationView = binding.navView
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
-            )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        navView.setOnItemSelectedListener { item ->
+            switchFragment(item.itemId)
+            true
+        }
 
+        navView.selectedItemId = R.id.navigation_timer
+        supportActionBar?.title = "Таймер"
     }
 
     override fun lockNavigation() {
@@ -63,5 +66,33 @@ class MainActivity : AppCompatActivity(), TimerStateListener  {
         bottomNav.menu.forEach { item ->
             item.isEnabled = true
         }
+    }
+    private fun switchFragment(tabId: Int) {
+        if (tabId == currentTabId) return
+
+        val transaction = supportFragmentManager.beginTransaction()
+
+        transaction.setCustomAnimations(
+            android.R.animator.fade_in,
+            android.R.animator.fade_out,
+            android.R.animator.fade_in,
+            android.R.animator.fade_out
+        )
+
+        fragments[currentTabId]?.let { transaction.hide(it) }
+
+        fragments[tabId]?.let {
+            transaction.show(it)
+        }
+
+        transaction.commit()
+        currentTabId = tabId
+
+        when(tabId) {
+            R.id.navigation_history -> supportActionBar?.title = "История"
+            R.id.navigation_timer -> supportActionBar?.title = "Таймер"
+            R.id.navigation_minigames -> supportActionBar?.title = "Мини-игры"
+        }
+
     }
 }
