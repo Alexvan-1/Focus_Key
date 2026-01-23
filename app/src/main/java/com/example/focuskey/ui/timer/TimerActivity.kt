@@ -257,6 +257,10 @@ class TimerActivity : Fragment() {
             }
         }
 
+        viewModel.getKeysLiveData().observe(viewLifecycleOwner) { keysCount ->
+            Log.e("KeysDebug", "🔑 $keysCount")
+        }
+
         dialog.show()
     }
 
@@ -294,6 +298,9 @@ class TimerActivity : Fragment() {
                 pause_button.visibility = View.INVISIBLE
             }
             else -> timerListener?.unlockNavigation()
+        }
+        viewModel.getKeysLiveData().observe(viewLifecycleOwner) { keysCount ->
+            Log.e("KeysDebug", "🔑 $keysCount")
         }
     }
 

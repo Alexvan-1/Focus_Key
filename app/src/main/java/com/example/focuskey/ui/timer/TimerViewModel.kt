@@ -4,9 +4,10 @@ import android.os.CountDownTimer
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.focuskey.data.KeyManager
 import kotlin.math.min
 
-class TimerViewModel : ViewModel() {
+class TimerViewModel: ViewModel() {
 
     enum class TimerState {
         IDLE,
@@ -20,6 +21,8 @@ class TimerViewModel : ViewModel() {
     private var _isPaused = MutableLiveData(false)
     private var remainingMs: Long = 0L
     val isPausedLive: LiveData<Boolean> = _isPaused
+
+    private var sessionKeys = 0
 
     private val _timerState = MutableLiveData(TimerState.IDLE)
     val timerState: LiveData<TimerState> = _timerState
@@ -46,34 +49,15 @@ class TimerViewModel : ViewModel() {
     fun startWorkTimer() {
         _timerState.value = TimerState.WORKING
 
-        val workMinutes = min(20, _remainingWorkTime.value ?: 0)
+        val workMinutes = min(20, _remainingWorkTime.value ?: 0).toInt()
         val duration = workMinutes * 60 * 1000L
         remainingMs = duration
 
-        currentTimer?.cancel()
-        currentTimer = object : CountDownTimer(duration, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                _displayTime.value = formatTime(millisUntilFinished)
-                remainingMs = millisUntilFinished
-            }
+        createTimer(remainingMs, workMinutes)
 
-            override fun onFinish() {
-                _displayTime.value = "0:00:00"
-                val remaining = (_remainingWorkTime.value ?: 0) - workMinutes
-                _remainingWorkTime.value = remaining
-
-                if (remaining > 0 && workMinutes >= 20) {
-
-                    startBreakTimer()
-                } else {
-
-                    completeSession()
-                }
-            }
-        }.start()
     }
 
-    private fun createTimer(durationMs: Long) {
+    private fun createTimer(durationMs: Long, workMinutes: Int) {
         currentTimer?.cancel()
         currentTimer = object : CountDownTimer(durationMs, 1000) {
             override fun onTick(millisUntilFinished: Long) {
@@ -83,7 +67,12 @@ class TimerViewModel : ViewModel() {
 
             override fun onFinish() {
                 _displayTime.value = "0:00:00"
-                val workMinutes = (durationMs / 60000).toInt()
+
+                if (workMinutes >= 20) {
+                    sessionKeys++
+                    KeyManager.addKeys(1)
+                }
+
                 val remaining = (_remainingWorkTime.value ?: 0) - workMinutes
                 _remainingWorkTime.value = remaining
 
@@ -122,13 +111,14 @@ class TimerViewModel : ViewModel() {
         isPaused = false
         _isPaused.value = false
 
-        createTimer(remainingMs)
+        createTimer(remainingMs, (remainingMs / 60000).toInt())
 
     }
 
     private fun completeSession() {
         _timerState.value = TimerState.IDLE
         _remainingWorkTime.value = 0
+        sessionKeys = 0
     }
 
     fun cancelAll() {
@@ -139,6 +129,7 @@ class TimerViewModel : ViewModel() {
         breakTimer?.cancel()
         _timerState.value = TimerState.IDLE
         _remainingWorkTime.value = 0
+        sessionKeys = 0
     }
 
     private fun formatTime(millis: Long): String {
@@ -146,6 +137,10 @@ class TimerViewModel : ViewModel() {
         val minutes = (millis % 3600000) / 60000
         val seconds = (millis % 60000) / 1000
         return String.format("%01d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    fun getKeysLiveData(): LiveData<Int> {
+        return KeyManager.keysLiveData
     }
 
     override fun onCleared() {

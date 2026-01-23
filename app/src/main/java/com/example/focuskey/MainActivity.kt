@@ -1,6 +1,7 @@
 package com.example.focuskey
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -13,6 +14,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.example.focuskey.data.KeyManager
 import com.example.focuskey.ui.timer.TimerStateListener
 import com.example.focuskey.databinding.ActivityMainBinding
 
@@ -20,8 +22,14 @@ class MainActivity : AppCompatActivity(), TimerStateListener  {
 
     private lateinit var binding: ActivityMainBinding
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        KeyManager.init(applicationContext)
+
+        val currentKeys = KeyManager.getKeys()
+        Log.e("KeysDebug","Текущие ключи при запуске: $currentKeys")
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
