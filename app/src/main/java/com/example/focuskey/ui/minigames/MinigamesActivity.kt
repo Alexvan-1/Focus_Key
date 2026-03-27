@@ -1,5 +1,6 @@
 package com.example.focuskey.ui.minigames
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -29,10 +30,15 @@ class MinigamesActivity : Fragment() {
         _binding = FragmentMinigamesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textNotifications
-        notificationsViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        val InhaleExhale_bt = binding.imageButton
+
+        InhaleExhale_bt.setOnClickListener() {
+            val intent = Intent(this.activity, InhaleExhale_game::class.java)
+            startActivity(intent)
         }
+
+
+
         return root
     }
 
