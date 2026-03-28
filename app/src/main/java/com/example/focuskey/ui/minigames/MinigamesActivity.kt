@@ -30,10 +30,16 @@ class MinigamesActivity : Fragment() {
         _binding = FragmentMinigamesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val InhaleExhale_bt = binding.imageButton
+        val InhaleExhale_bt = binding.inhaleExhale
+        val WhackAMole_bt = binding.whackAMole
 
         InhaleExhale_bt.setOnClickListener() {
             val intent = Intent(this.activity, InhaleExhale_game::class.java)
+            startActivity(intent)
+        }
+
+        WhackAMole_bt.setOnClickListener(){
+            val intent = Intent(this.activity, WhackAMoleGame::class.java)
             startActivity(intent)
         }
 

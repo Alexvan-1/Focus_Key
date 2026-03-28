@@ -147,10 +147,10 @@ class InhaleExhale_game : AppCompatActivity() {
     }
 
     private fun stopAnimations() {
-        if (::textHandler.isInitialized) textHandler.removeCallbacks(textRunnable)
-        if (::progressHandler.isInitialized) progressHandler.removeCallbacks(progressRunnable)
-        text.text = "Вдох"
-        progressBar.progress = 100
+        if (!::progressBar.isInitialized || !::text.isInitialized) return
+
+        progressBar.progress = 0
+        text.text = ""
     }
 
 }
