@@ -24,27 +24,27 @@ class MinigamesActivity : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val notificationsViewModel =
-            ViewModelProvider(this).get(MinigamesLayout::class.java)
-
         _binding = FragmentMinigamesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val InhaleExhale_bt = binding.inhaleExhale
-        val WhackAMole_bt = binding.whackAMole
+        val inhaleExhale = binding.inhaleExhale
+        val whackAMole = binding.whackAMole
+        val memoryGame = binding.memoryGame
 
-        InhaleExhale_bt.setOnClickListener() {
+        inhaleExhale.setOnClickListener() {
             val intent = Intent(this.activity, InhaleExhale_game::class.java)
             startActivity(intent)
         }
 
-        WhackAMole_bt.setOnClickListener(){
+        whackAMole.setOnClickListener(){
             val intent = Intent(this.activity, WhackAMoleGame::class.java)
             startActivity(intent)
         }
 
-
-
+        memoryGame.setOnClickListener() {
+            val intent = Intent(this.activity, MemoryGameActivity::class.java)
+            startActivity(intent)
+        }
         return root
     }
 

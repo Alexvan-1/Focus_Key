@@ -8,4 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="background">#474747</color>
+    <color name="color_study">#FF3F51B5</color>
+    <color name="color_self_development">#139018</color>
+    <color name="color_sports">#FF7700</color>
+    <color name="color_hobby">#FF6200EE</color>
+    <color name="color_other">#47C3B7</color>
 </resources>
