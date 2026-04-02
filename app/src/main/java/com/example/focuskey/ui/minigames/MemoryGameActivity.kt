@@ -186,7 +186,6 @@ class MemoryGameActivity : AppCompatActivity() {
 
         if (firstSelectedCard != null && secondSelectedCard != null) return
 
-        // открываем карту
         flipCard(card, true)
 
         if (firstSelectedCard == null) {
@@ -221,21 +220,17 @@ class MemoryGameActivity : AppCompatActivity() {
         if (card1 == null || card2 == null) return
 
         if (card1.shapeRes == card2.shapeRes && card1.color == card2.color) {
-            // совпадение
             card1.isMatched = true
             card2.isMatched = true
-            // оставляем открытыми, но отключаем клики
             card1.container?.isClickable = false
             card2.container?.isClickable = false
             firstSelectedCard = null
             secondSelectedCard = null
 
-            // проверка победы
             if (cardList.all { it.isMatched }) {
                 endGame()
             }
         } else {
-            // несовпадение — закрываем через задержку
             isProcessing = true
             handler.postDelayed({
                 flipCard(card1, false)

@@ -30,6 +30,7 @@ class MinigamesActivity : Fragment() {
         val inhaleExhale = binding.inhaleExhale
         val whackAMole = binding.whackAMole
         val memoryGame = binding.memoryGame
+        val puzzleGame = binding.puzzleGame
 
         inhaleExhale.setOnClickListener() {
             val intent = Intent(this.activity, InhaleExhale_game::class.java)
@@ -43,6 +44,11 @@ class MinigamesActivity : Fragment() {
 
         memoryGame.setOnClickListener() {
             val intent = Intent(this.activity, MemoryGameActivity::class.java)
+            startActivity(intent)
+        }
+
+        puzzleGame.setOnClickListener() {
+            val intent = Intent(this.activity, DragPuzzleActivity::class.java)
             startActivity(intent)
         }
         return root
