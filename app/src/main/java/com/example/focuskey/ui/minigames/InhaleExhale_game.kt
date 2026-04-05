@@ -4,6 +4,10 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.Button
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
@@ -32,11 +36,14 @@ class InhaleExhale_game : AppCompatActivity() {
     private lateinit var progressRunnable: Runnable
     private lateinit var text: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var vibrator: Vibrator
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_inhale_exhale_game)
+        vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -101,6 +108,7 @@ class InhaleExhale_game : AppCompatActivity() {
                             override fun run() {
                                 isInhale = !isInhale
                                 text.text = if (isInhale) "Вдох" else "Выдох"
+                                vibrateTick()
                                 textHandler.postDelayed(this, textChangeInterval)
                             }
                         }
@@ -146,11 +154,40 @@ class InhaleExhale_game : AppCompatActivity() {
 
     }
 
-    private fun stopAnimations() {
-        if (!::progressBar.isInitialized || !::text.isInitialized) return
-
-        progressBar.progress = 0
-        text.text = ""
+    private fun vibrateTick() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(40)
+        }
     }
 
+    private fun stopAnimations() {
+        if (::textHandler.isInitialized) {
+            textHandler.removeCallbacksAndMessages(null)
+        }
+        if (::progressHandler.isInitialized) {
+            progressHandler.removeCallbacksAndMessages(null)
+        }
+
+        if (::progressBar.isInitialized) {
+            progressBar.progress = 0
+        }
+        if (::text.isInitialized) {
+            text.text = ""
+        }
+    }
+
+    override fun onDestroy() {
+        stopAnimations()
+        super.onDestroy()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopAnimations()
+    }
 }

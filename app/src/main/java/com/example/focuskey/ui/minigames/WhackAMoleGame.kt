@@ -12,6 +12,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.media.AudioAttributes
+import android.media.SoundPool
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
@@ -34,6 +36,7 @@ class WhackAMoleGame : AppCompatActivity() {
     private lateinit var holesContainer: ViewGroup
     private lateinit var scoreTextView: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var soundPool: SoundPool
 
     private data class Hole(
         val container: FrameLayout,
@@ -62,6 +65,10 @@ class WhackAMoleGame : AppCompatActivity() {
     private val holeSizeDp = 96
     private val holePaddingDp = 14
 
+    private var moleStartSoundId = 0
+    private var moleEndSoundId = 0
+    private var hitSoundId = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +82,20 @@ class WhackAMoleGame : AppCompatActivity() {
         progressBar.progress = totalDuration.toInt()
 
         supportActionBar?.title = "Ударь крота"
+
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(3)
+            .setAudioAttributes(audioAttributes)
+            .build()
+
+        moleStartSoundId = soundPool.load(this, R.raw.long_sound, 1)
+        moleEndSoundId = soundPool.load(this, R.raw.short_sound, 1)
+        hitSoundId = soundPool.load(this, R.raw.hit, 1)
 
         showDialog()
     }
@@ -99,6 +120,12 @@ class WhackAMoleGame : AppCompatActivity() {
         }
 
         dialog.show()
+    }
+
+    private fun playSound(soundId: Int) {
+        if (soundId != 0) {
+            soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
+        }
     }
 
     private fun startGame() {
@@ -270,13 +297,16 @@ class WhackAMoleGame : AppCompatActivity() {
                     resource?.start()
                     activeGifDrawable = resource
 
-                    val duration = 2600L
+                    playSound(moleStartSoundId)
+
+                    val duration = 800L
 
                     hole.moleView.visibility = View.VISIBLE
                     hole.moleView.alpha = 1f
 
                     hideMoleRunnable = Runnable {
                         if (gameActive && activeHole == hole) {
+                            playSound(moleEndSoundId)
                             activeGifDrawable?.stop()
                             activeGifDrawable = null
                             hole.moleView.setImageDrawable(null)
@@ -308,6 +338,7 @@ class WhackAMoleGame : AppCompatActivity() {
         activeGifDrawable = null
         activeHole = null
 
+        playSound(hitSoundId)
         playHitAnimation(hole)
     }
 
@@ -436,6 +467,7 @@ class WhackAMoleGame : AppCompatActivity() {
             it.moleView.alpha = 0f
         }
         activeGifDrawable?.stop()
+        soundPool.release()
         super.onDestroy()
     }
 }

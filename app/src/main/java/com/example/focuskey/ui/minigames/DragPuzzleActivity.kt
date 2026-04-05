@@ -15,6 +15,12 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
+import android.media.AudioAttributes
+import android.media.SoundPool
+import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.focuskey.R
@@ -26,6 +32,7 @@ class DragPuzzleActivity : AppCompatActivity() {
     private lateinit var trayArea: FrameLayout
     private lateinit var dragLayer: FrameLayout
     private lateinit var progressBar: ProgressBar
+    private lateinit var soundPool: SoundPool
 
     private val gridSize = 3
     private val totalPieces = 9
@@ -56,6 +63,11 @@ class DragPuzzleActivity : AppCompatActivity() {
     private var draggingOriginalView: ImageView? = null
     private var floatingView: ImageView? = null
 
+    private var activeRotationAnimator: ObjectAnimator? = null
+
+    private var pressSoundId = 0
+    private var rotateSoundId = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drag_puzzle)
@@ -70,7 +82,26 @@ class DragPuzzleActivity : AppCompatActivity() {
 
         supportActionBar?.title = "Пазл"
 
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(3)
+            .setAudioAttributes(audioAttributes)
+            .build()
+
+        pressSoundId = soundPool.load(this, R.raw.short_sound, 1)
+        rotateSoundId = soundPool.load(this, R.raw.long_sound, 1)
+
         showDialog()
+    }
+
+    private fun playSound(soundId: Int) {
+        if (soundId != 0) {
+            soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
+        }
     }
 
     private fun showDialog() {
@@ -272,6 +303,33 @@ class DragPuzzleActivity : AppCompatActivity() {
         }
     }
 
+    private fun animateQuarterTurn(view: ImageView, piece: Piece) {
+        activeRotationAnimator?.cancel()
+
+        playSound(rotateSoundId)
+
+        val start = piece.currentRotation.toFloat()
+        var end = start + 90f
+        if (end >= 360f) {
+            end = 360f
+        }
+
+        activeRotationAnimator = ObjectAnimator.ofFloat(view, View.ROTATION, start, end).apply {
+            duration = 220
+            interpolator = DecelerateInterpolator()
+
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    piece.currentRotation = (piece.currentRotation + 90) % 360
+                    view.rotation = piece.currentRotation.toFloat()
+                    checkWinCondition()
+                }
+            })
+
+            start()
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun createTrayTouchListener(piece: Piece, view: ImageView): View.OnTouchListener {
         return View.OnTouchListener { _, event ->
@@ -301,6 +359,7 @@ class DragPuzzleActivity : AppCompatActivity() {
 
     private fun startTrayDrag(piece: Piece, originalView: ImageView, event: MotionEvent) {
         stopRotation()
+        playSound(pressSoundId)
         draggingPiece = piece
         draggingOriginalView = originalView
 
@@ -400,6 +459,7 @@ class DragPuzzleActivity : AppCompatActivity() {
     }
 
     private fun returnPieceFromBoard(index: Int) {
+        playSound(pressSoundId)
         val piece = boardState[index] ?: return
         boardState[index] = null
         pieces.add(piece)
@@ -417,9 +477,8 @@ class DragPuzzleActivity : AppCompatActivity() {
                 val p = rotatingPiece ?: return
                 val v = rotatingView ?: return
                 if (!gameActive) return
-                p.currentRotation = (p.currentRotation + 90) % 360
-                v.rotation = p.currentRotation.toFloat()
-                checkWinCondition()
+
+                animateQuarterTurn(v, p)
                 handler.postDelayed(this, 1000)
             }
         }
@@ -438,9 +497,8 @@ class DragPuzzleActivity : AppCompatActivity() {
                 val p = rotatingPiece ?: return
                 val v = rotatingView ?: return
                 if (!gameActive) return
-                p.currentRotation = (p.currentRotation + 90) % 360
-                v.rotation = p.currentRotation.toFloat()
-                checkWinCondition()
+
+                animateQuarterTurn(v, p)
                 handler.postDelayed(this, 1000)
             }
         }
@@ -451,6 +509,8 @@ class DragPuzzleActivity : AppCompatActivity() {
     private fun stopRotation() {
         rotationRunnable?.let { handler.removeCallbacks(it) }
         rotationRunnable = null
+        activeRotationAnimator?.cancel()
+        activeRotationAnimator = null
         rotatingPiece = null
         rotatingView = null
     }
@@ -503,6 +563,7 @@ class DragPuzzleActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        soundPool.release()
         super.onDestroy()
     }
 

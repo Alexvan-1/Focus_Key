@@ -13,14 +13,22 @@ import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.media.AudioAttributes
+import android.media.SoundPool
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
+import android.graphics.PorterDuff
+import android.view.animation.DecelerateInterpolator
 import com.example.focuskey.R
 
 class MemoryGameActivity : AppCompatActivity() {
 
     private lateinit var cardsGrid: GridLayout
     private lateinit var progressBar: ProgressBar
+    private lateinit var soundPool: SoundPool
 
     private data class Card(
         val shapeRes: Int,
@@ -42,6 +50,8 @@ class MemoryGameActivity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
+
+    private var flipSoundId = 0
 
     private val shapeResources = listOf(
         R.drawable.shape_circle,
@@ -71,7 +81,25 @@ class MemoryGameActivity : AppCompatActivity() {
 
         supportActionBar?.title = "Найди пару"
 
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(1)
+            .setAudioAttributes(audioAttributes)
+            .build()
+
+        flipSoundId = soundPool.load(this, R.raw.long_sound, 1)
+
         showDialog()
+    }
+
+    private fun playFlipSound() {
+        if (flipSoundId != 0) {
+            soundPool.play(flipSoundId, 1f, 1f, 0, 0, 1f)
+        }
     }
 
     private fun showDialog() {
@@ -196,22 +224,51 @@ class MemoryGameActivity : AppCompatActivity() {
         }
     }
 
-    private fun flipCard(card: Card, show: Boolean) {
-        if (show) {
-            val front = card.frontView ?: return
-            front.setImageResource(card.shapeRes)
-            front.setColorFilter(card.color, android.graphics.PorterDuff.Mode.SRC_IN)
-            front.visibility = View.VISIBLE
-            card.container?.findViewById<ImageView>(R.id.background)?.setImageResource(R.drawable.card_front)
+    private fun flipCard(card: Card, show: Boolean, onEnd: (() -> Unit)? = null) {
+        val container = card.container ?: return
+        val background = container.findViewById<ImageView>(R.id.background) ?: return
+        val front = card.frontView ?: return
 
-            card.isFlipped = true
-        } else {
-            card.frontView?.visibility = View.INVISIBLE
-            card.frontView?.setImageDrawable(null)
-            card.container?.findViewById<ImageView>(R.id.background)?.setImageResource(R.drawable.card_back)
+        playFlipSound()
 
-            card.isFlipped = false
+        container.cameraDistance = 20000f * resources.displayMetrics.density
+
+        val firstHalf = ObjectAnimator.ofFloat(container, View.ROTATION_Y, 0f, 90f).apply {
+            duration = 140
+            interpolator = DecelerateInterpolator()
         }
+
+        val secondHalf = ObjectAnimator.ofFloat(container, View.ROTATION_Y, -90f, 0f).apply {
+            duration = 140
+            interpolator = DecelerateInterpolator()
+        }
+
+        firstHalf.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                if (show) {
+                    front.setImageResource(card.shapeRes)
+                    front.setColorFilter(card.color, PorterDuff.Mode.SRC_IN)
+                    front.visibility = View.VISIBLE
+                    background.setImageResource(R.drawable.card_front)
+                } else {
+                    front.visibility = View.INVISIBLE
+                    front.setImageDrawable(null)
+                    background.setImageResource(R.drawable.card_back)
+                }
+
+                container.rotationY = -90f
+                secondHalf.start()
+            }
+        })
+
+        secondHalf.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                card.isFlipped = show
+                onEnd?.invoke()
+            }
+        })
+
+        firstHalf.start()
     }
 
     private fun checkMatch() {
@@ -228,7 +285,9 @@ class MemoryGameActivity : AppCompatActivity() {
             secondSelectedCard = null
 
             if (cardList.all { it.isMatched }) {
-                endGame()
+                handler.postDelayed({
+                    endGame()
+                }, 1000)
             }
         } else {
             isProcessing = true
@@ -238,7 +297,7 @@ class MemoryGameActivity : AppCompatActivity() {
                 firstSelectedCard = null
                 secondSelectedCard = null
                 isProcessing = false
-            }, 1500)
+            }, 800)
         }
     }
 
@@ -270,6 +329,7 @@ class MemoryGameActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        soundPool.release()
     }
 
     @SuppressLint("MissingSuperCall")
