@@ -1,4 +1,4 @@
-package com.example.focuskey.ui.achievements
+package com.example.focuskey.ui.history
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,12 +7,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.focuskey.databinding.FragmentAchievementsBinding
+import com.example.focuskey.databinding.FragmentHistoryBinding
 
 
-class AchievementsActivity : Fragment() {
+class HistoryActivity : Fragment() {
 
-    private var _binding: FragmentAchievementsBinding? = null
+    private var _binding: FragmentHistoryBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -23,16 +23,11 @@ class AchievementsActivity : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel =
-            ViewModelProvider(this).get(AchievementsLayout::class.java)
 
-        _binding = FragmentAchievementsBinding.inflate(inflater, container, false)
+        _binding = FragmentHistoryBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textHome
-        homeViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
         return root
     }
 

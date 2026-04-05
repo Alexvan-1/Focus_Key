@@ -3,24 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    android:label="@string/title_home"
-    app:startDestination="@+id/navigation_home">
+    android:label="@string/title_history"
+    app:startDestination="@+id/navigation_timer">
 
     <fragment
-        android:id="@+id/navigation_home"
-        android:name="com.example.focuskey.ui.achievements.AchievementsActivity"
-        android:label="@string/title_home"
-        tools:layout="@layout/fragment_achievements" />
+        android:id="@+id/navigation_history"
+        android:name="com.example.focuskey.ui.history.HistoryActivity"
+        android:label="@string/title_history"
+        tools:layout="@layout/fragment_history" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/navigation_timer"
         android:name="com.example.focuskey.ui.timer.TimerActivity"
-        android:label="@string/title_dashboard"
+        android:label="@string/title_timer"
         tools:layout="@layout/fragment_timer" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
+        android:id="@+id/navigation_minigames"
         android:name="com.example.focuskey.ui.minigames.MinigamesActivity"
-        android:label="@string/title_notifications"
+        android:label="@string/title_minigames"
         tools:layout="@layout/fragment_minigames" />
 </navigation>
