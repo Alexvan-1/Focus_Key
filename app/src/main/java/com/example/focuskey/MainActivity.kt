@@ -2,22 +2,26 @@ package com.example.focuskey
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.forEach
 import com.example.focuskey.data.KeyManager
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.focuskey.databinding.ActivityMainBinding
 import com.example.focuskey.ui.history.HistoryActivity
 import com.example.focuskey.ui.minigames.MinigamesActivity
 import com.example.focuskey.ui.timer.TimerActivity
 import com.example.focuskey.ui.timer.TimerStateListener
+import com.example.focuskey.R
 
 class MainActivity : AppCompatActivity(), TimerStateListener {
 
     private lateinit var binding: ActivityMainBinding
     private val fragments = mutableMapOf<Int, Fragment>()
     private var currentTabId = R.id.navigation_timer
+    private lateinit var keysTextView: TextView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,30 +30,47 @@ class MainActivity : AppCompatActivity(), TimerStateListener {
         KeyManager.init(applicationContext)
 
         val currentKeys = KeyManager.getKeys()
-        Log.e("KeysDebug","Текущие ключи при запуске: $currentKeys")
+        Log.e("KeysDebug", "Текущие ключи при запуске: $currentKeys")
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        fragments[R.id.navigation_history] = HistoryActivity()
-        fragments[R.id.navigation_timer] = TimerActivity()
-        fragments[R.id.navigation_minigames] = MinigamesActivity()
-
-        supportFragmentManager.beginTransaction().apply {
-            add(R.id.fragment_container, fragments[R.id.navigation_timer]!!, "timer")
-            add(R.id.fragment_container, fragments[R.id.navigation_history]!!, "history").hide(fragments[R.id.navigation_history]!!)
-            add(R.id.fragment_container, fragments[R.id.navigation_minigames]!!, "minigames").hide(fragments[R.id.navigation_minigames]!!)
-        }.commit()
-
-        val navView: BottomNavigationView = binding.navView
-
-        navView.setOnItemSelectedListener { item ->
-            switchFragment(item.itemId)
-            true
+        supportActionBar?.apply {
+            setDisplayShowCustomEnabled(true)
+            setCustomView(R.layout.layout_actionbar_keys)
         }
 
-        navView.selectedItemId = R.id.navigation_timer
-        supportActionBar?.title = "Таймер"
+        keysTextView = supportActionBar?.customView?.findViewById(R.id.text_key_count)!!
+
+        KeyManager.keysLiveData.observe(this) { keyCount ->
+            keysTextView.text = keyCount.toString()
+
+            fragments[R.id.navigation_history] = HistoryActivity()
+            fragments[R.id.navigation_timer] = TimerActivity()
+            fragments[R.id.navigation_minigames] = MinigamesActivity()
+
+            supportFragmentManager.beginTransaction().apply {
+                add(R.id.fragment_container, fragments[R.id.navigation_timer]!!, "timer")
+                add(R.id.fragment_container, fragments[R.id.navigation_history]!!, "history").hide(
+                    fragments[R.id.navigation_history]!!
+                )
+                add(
+                    R.id.fragment_container,
+                    fragments[R.id.navigation_minigames]!!,
+                    "minigames"
+                ).hide(fragments[R.id.navigation_minigames]!!)
+            }.commit()
+
+            val navView: BottomNavigationView = binding.navView
+
+            navView.setOnItemSelectedListener { item ->
+                switchFragment(item.itemId)
+                true
+            }
+
+            navView.selectedItemId = R.id.navigation_timer
+            supportActionBar?.title = "Таймер"
+        }
     }
 
     override fun lockNavigation() {

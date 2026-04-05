@@ -1,6 +1,7 @@
 package com.example.focuskey.ui.timer
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -9,9 +10,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.MediaController
+import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.VideoView
+import androidx.core.graphics.alpha
+import androidx.core.graphics.toColor
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.focuskey.R
@@ -25,13 +32,19 @@ class TimerActivity : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: TimerViewModel by viewModels()
+    private var was_paused = false
 
     private lateinit var tagRadioGroup: RadioGroup
     private var selectedTag: String = "Другое"
 
+    private lateinit var staticImage: ImageView
+    private lateinit var videoView: VideoView
+    private lateinit var mediaController: MediaController
+
     private var mins = 20L
     private lateinit var timer_text_choose: TextView
     private lateinit var state_text: TextView
+    private lateinit var session_info: TextView
     private lateinit var timer_text: TextView
     private lateinit var count_down: TextView
     private lateinit var cancel_button: Button
@@ -45,6 +58,49 @@ class TimerActivity : Fragment() {
 
     private var timerListener: TimerStateListener? = null
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        staticImage = view.findViewById(R.id.imageView)
+        videoView = view.findViewById(R.id.videoView)
+
+        setupVideoPlayer()
+    }
+
+    private fun setupVideoPlayer() {
+        mediaController = MediaController(requireContext())
+        mediaController.setVisibility(View.GONE)
+
+        val videoUri = Uri.parse("android.resource://" + requireContext().packageName + "/" + R.raw.focus_anim_fixed)
+
+        videoView.setMediaController(mediaController)
+        videoView.setVideoURI(videoUri)
+
+        videoView.setOnPreparedListener { mp ->
+            mp.isLooping = true
+            if (viewModel.videoPosition > 0) {
+                videoView.seekTo(viewModel.videoPosition)
+            }
+        }
+
+        videoView.setOnErrorListener { mp, what, extra ->
+            Log.e("VideoView", "Ошибка воспроизведения: $what, $extra")
+            true
+        }
+    }
+
+    private fun setSessionMode(isActive: Boolean) {
+        if (isActive) {
+            staticImage.visibility = View.GONE
+            videoView.visibility = View.VISIBLE
+            videoView.start()
+        } else {
+            videoView.pause()
+            videoView.visibility = View.GONE
+            staticImage.visibility = View.VISIBLE
+        }
+    }
+
     override fun onAttach(context: android.content.Context) {
         super.onAttach(context)
         timerListener = context as? TimerStateListener
@@ -54,6 +110,7 @@ class TimerActivity : Fragment() {
         super.onDetach()
         timerListener = null
     }
+
 
     @SuppressLint("SetTextI18n")
     override fun onCreateView(
@@ -70,6 +127,7 @@ class TimerActivity : Fragment() {
         count_down = binding.countDown
         state_text = binding.stateText
         pause_button = binding.pauseButton
+        session_info = binding.sessionInfo
 
         start_button.setOnClickListener {
             start_button.visibility = View.INVISIBLE
@@ -88,22 +146,21 @@ class TimerActivity : Fragment() {
             when (state) {
                 TimerViewModel.TimerState.WORKING -> {
                     timerListener?.lockNavigation()
-                    if (viewModel.remainingWorkTime.value!! > 20) {
-                        state_text.setText("До перерыва осталось:")
-                    }
-                    else {
-                        state_text.setText("До конца осталось:")
-                    }
+                    state_text.setText("Концетрация")
+                    setSessionMode(true)
                 }
                 TimerViewModel.TimerState.BREAK -> {
                     timerListener?.unlockNavigation()
                     state_text.setText("Перерыв")
                     cancel_button.visibility = View.VISIBLE
                     pause_button.visibility = View.INVISIBLE
+                    setSessionMode(false)
                 }
                 TimerViewModel.TimerState.IDLE -> {
                     timerListener?.unlockNavigation()
                     state_text.setText(" ")
+                    session_info.setText("   ")
+                    setSessionMode(false)
                 }
                 else -> {}
             }
@@ -145,7 +202,7 @@ class TimerActivity : Fragment() {
 
     private fun setupTagSelection() {
         tagRadioGroup.setOnCheckedChangeListener { group, checkedId ->
-            selectedTag = when (checkedId) {
+            selectedTag = when(checkedId) {
                 R.id.tag_study -> "Учёба"
                 R.id.tag_self_development -> "Саморазвитие"
                 R.id.tag_sports -> "Спорт"
@@ -235,11 +292,27 @@ class TimerActivity : Fragment() {
                 viewModel.startWorkSession(mins)
                 viewModel.startWorkTimer()
 
+                if (mins / 60.0 < 1) {
+                    session_info.setText("$mins минут, $selectedTag")
+                }
+                else if (mins / 60.0 == 1.0) {
+                    session_info.setText("1 чаc, $selectedTag")
+                }
+                else if (mins / 60.0 == 2.0) {
+                    session_info.setText("2 часа, $selectedTag")
+                }
+                else {
+                    session_info.setText("1 час ${mins % 60} минут, $selectedTag")
+                }
+
+
             }, 3000)
         }
 
         back_button.setOnClickListener {
             dialog.dismiss()
+            mins = 20
+            updateTimeDisplay()
             start_button.visibility = View.VISIBLE
         }
 
@@ -250,9 +323,13 @@ class TimerActivity : Fragment() {
         pause_button.setOnClickListener() {
             if (viewModel.isPausedLive.value == true) {
                 viewModel.resumeTimer()
+                videoView.seekTo(viewModel.videoPosition)
+                videoView.start()
                 pause_button.setText("Пауза")
             } else {
                 viewModel.pauseTimer()
+                viewModel.videoPosition = videoView.currentPosition
+                videoView.pause()
                 pause_button.setText("Продолжить")
             }
         }
@@ -268,7 +345,10 @@ class TimerActivity : Fragment() {
         stop_anim()
         viewModel.cancelAll()
 
+        viewModel.videoPosition = 0
+
         count_down_timer?.cancel()
+        session_info.setText("    ")
 
         timer_text.text = "0:00:00"
         timer_text.visibility = View.INVISIBLE
@@ -294,13 +374,25 @@ class TimerActivity : Fragment() {
         when (viewModel.timerState.value) {
             TimerViewModel.TimerState.WORKING -> {
                 timerListener?.lockNavigation()
-                cancel_button.visibility = View.INVISIBLE
-                pause_button.visibility = View.INVISIBLE
             }
             else -> timerListener?.unlockNavigation()
         }
-        viewModel.getKeysLiveData().observe(viewLifecycleOwner) { keysCount ->
-            Log.e("KeysDebug", "🔑 $keysCount")
+        if (was_paused && viewModel.timerState.value == TimerViewModel.TimerState.WORKING) {
+            viewModel.resumeTimer()
+            videoView.seekTo(viewModel.videoPosition)
+            videoView.start()
+            was_paused = false
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (viewModel.timerState.value == TimerViewModel.TimerState.WORKING &&
+            !viewModel.isPausedLive.value!!) {
+            viewModel.pauseTimer()
+            viewModel.videoPosition = videoView.currentPosition
+            videoView.pause()
+            was_paused = true
         }
     }
 

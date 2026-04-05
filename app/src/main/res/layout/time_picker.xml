@@ -69,63 +69,65 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:id="@+id/tag_study"
+                android:id="@+id/tag_other"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="Учёба"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/background_other"
                 android:button="@null"
-                android:background="@drawable/background"
                 android:gravity="center"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:layout_marginEnd="8dp" />
+                android:text="Другое" />
+
+            <RadioButton
+                android:id="@+id/tag_study"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/background_study"
+                android:button="@null"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="Учёба" />
 
             <RadioButton
                 android:id="@+id/tag_self_development"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="Саморазвитие"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/background_self_dev"
                 android:button="@null"
-                android:background="@drawable/background"
                 android:gravity="center"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:layout_marginEnd="8dp" />
+                android:text="Саморазвитие" />
 
             <RadioButton
                 android:id="@+id/tag_sports"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="Спорт"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/background_sports"
                 android:button="@null"
-                android:background="@drawable/background"
                 android:gravity="center"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:layout_marginEnd="8dp" />
+                android:text="Спорт" />
 
             <RadioButton
                 android:id="@+id/tag_hobby"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="Хобби"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/background_hobby"
                 android:button="@null"
-                android:background="@drawable/background"
                 android:gravity="center"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
-                android:layout_marginEnd="8dp" />
+                android:text="Хобби" />
 
-            <RadioButton
-                android:id="@+id/tag_other"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="Другое"
-                android:button="@null"
-                android:background="@drawable/background"
-                android:gravity="center"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp" />
 
         </RadioGroup>
 

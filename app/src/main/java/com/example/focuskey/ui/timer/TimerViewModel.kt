@@ -24,6 +24,8 @@ class TimerViewModel: ViewModel() {
 
     private var sessionKeys = 0
 
+    var videoPosition: Int = 0
+
     private val _timerState = MutableLiveData(TimerState.IDLE)
     val timerState: LiveData<TimerState> = _timerState
 
