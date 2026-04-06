@@ -44,34 +44,35 @@ class MainActivity : AppCompatActivity(), TimerStateListener {
 
         KeyManager.keysLiveData.observe(this) { keyCount ->
             keysTextView.text = keyCount.toString()
-
-            fragments[R.id.navigation_history] = HistoryActivity()
-            fragments[R.id.navigation_timer] = TimerActivity()
-            fragments[R.id.navigation_minigames] = MinigamesActivity()
-
-            supportFragmentManager.beginTransaction().apply {
-                add(R.id.fragment_container, fragments[R.id.navigation_timer]!!, "timer")
-                add(R.id.fragment_container, fragments[R.id.navigation_history]!!, "history").hide(
-                    fragments[R.id.navigation_history]!!
-                )
-                add(
-                    R.id.fragment_container,
-                    fragments[R.id.navigation_minigames]!!,
-                    "minigames"
-                ).hide(fragments[R.id.navigation_minigames]!!)
-            }.commit()
-
-            val navView: BottomNavigationView = binding.navView
-
-            navView.setOnItemSelectedListener { item ->
-                switchFragment(item.itemId)
-                true
-            }
-
-            navView.selectedItemId = R.id.navigation_timer
-            supportActionBar?.title = "Таймер"
         }
+
+        fragments[R.id.navigation_history] = HistoryActivity()
+        fragments[R.id.navigation_timer] = TimerActivity()
+        fragments[R.id.navigation_minigames] = MinigamesActivity()
+
+        supportFragmentManager.beginTransaction().apply {
+            add(R.id.fragment_container, fragments[R.id.navigation_timer]!!, "timer")
+            add(R.id.fragment_container, fragments[R.id.navigation_history]!!, "history").hide(
+                fragments[R.id.navigation_history]!!
+            )
+            add(
+                R.id.fragment_container,
+                fragments[R.id.navigation_minigames]!!,
+                "minigames"
+            ).hide(fragments[R.id.navigation_minigames]!!)
+        }.commit()
+
+        val navView: BottomNavigationView = binding.navView
+
+        navView.setOnItemSelectedListener { item ->
+            switchFragment(item.itemId)
+            true
+        }
+
+        navView.selectedItemId = R.id.navigation_timer
+        supportActionBar?.title = "Таймер"
     }
+
 
     override fun lockNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.nav_view)

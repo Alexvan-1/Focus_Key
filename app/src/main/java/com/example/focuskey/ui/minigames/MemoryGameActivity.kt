@@ -17,12 +17,15 @@ import android.media.AudioAttributes
 import android.media.SoundPool
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import com.example.focuskey.data.KeyManager
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.graphics.PorterDuff
 import android.view.animation.DecelerateInterpolator
 import com.example.focuskey.R
+import com.example.focuskey.ui.setupKeysActionBar
 
 class MemoryGameActivity : AppCompatActivity() {
 
@@ -53,6 +56,8 @@ class MemoryGameActivity : AppCompatActivity() {
 
     private var flipSoundId = 0
 
+    private var startButtonRef: Button? = null
+
     private val shapeResources = listOf(
         R.drawable.shape_circle,
         R.drawable.shape_square,
@@ -80,6 +85,12 @@ class MemoryGameActivity : AppCompatActivity() {
         progressBar.progress = totalDuration.toInt()
 
         supportActionBar?.title = "Найди пару"
+        setupKeysActionBar()
+
+        KeyManager.keysLiveData.observe(this) { keyCount ->
+            startButtonRef?.isEnabled = keyCount > 0
+            startButtonRef?.alpha = if (keyCount > 0) 1f else 0.5f
+        }
 
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
@@ -108,16 +119,40 @@ class MemoryGameActivity : AppCompatActivity() {
             .setView(view)
             .setCancelable(false)
             .create()
+
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-        view.findViewById<Button>(R.id.btn_start).setOnClickListener {
+        val btnStart = view.findViewById<Button>(R.id.btn_start)
+        val btnExit = view.findViewById<Button>(R.id.btn_exit)
+
+        startButtonRef = btnStart
+
+        val currentKeys = KeyManager.getKeys()
+        btnStart.isEnabled = currentKeys > 0
+        btnStart.alpha = if (currentKeys > 0) 1f else 0.5f
+
+        btnStart.setOnClickListener {
+            if (!KeyManager.spendKeys(1)) {
+                btnStart.isEnabled = false
+                btnStart.alpha = 0.5f
+                return@setOnClickListener
+            }
+
             dialog.dismiss()
             startGame()
         }
-        view.findViewById<Button>(R.id.btn_exit).setOnClickListener {
+
+        btnExit.setOnClickListener {
             dialog.dismiss()
             finish()
         }
+
+        dialog.setOnDismissListener {
+            if (startButtonRef === btnStart) {
+                startButtonRef = null
+            }
+        }
+
         dialog.show()
     }
 

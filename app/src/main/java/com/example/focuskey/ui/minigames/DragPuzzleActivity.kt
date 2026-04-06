@@ -23,7 +23,9 @@ import android.media.SoundPool
 import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.focuskey.data.KeyManager
 import com.example.focuskey.R
+import com.example.focuskey.ui.setupKeysActionBar
 import kotlin.math.min
 
 class DragPuzzleActivity : AppCompatActivity() {
@@ -68,6 +70,8 @@ class DragPuzzleActivity : AppCompatActivity() {
     private var pressSoundId = 0
     private var rotateSoundId = 0
 
+    private var startButtonRef: Button? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drag_puzzle)
@@ -81,6 +85,12 @@ class DragPuzzleActivity : AppCompatActivity() {
         progressBar.progress = totalDuration.toInt()
 
         supportActionBar?.title = "Пазл"
+        setupKeysActionBar()
+
+        KeyManager.keysLiveData.observe(this) { keyCount ->
+            startButtonRef?.isEnabled = keyCount > 0
+            startButtonRef?.alpha = if (keyCount > 0) 1f else 0.5f
+        }
 
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
@@ -113,14 +123,35 @@ class DragPuzzleActivity : AppCompatActivity() {
 
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-        view.findViewById<Button>(R.id.btn_start).setOnClickListener {
+        val btnStart = view.findViewById<Button>(R.id.btn_start)
+        val btnExit = view.findViewById<Button>(R.id.btn_exit)
+
+        startButtonRef = btnStart
+
+        val currentKeys = KeyManager.getKeys()
+        btnStart.isEnabled = currentKeys > 0
+        btnStart.alpha = if (currentKeys > 0) 1f else 0.5f
+
+        btnStart.setOnClickListener {
+            if (!KeyManager.spendKeys(1)) {
+                btnStart.isEnabled = false
+                btnStart.alpha = 0.5f
+                return@setOnClickListener
+            }
+
             dialog.dismiss()
             startGame()
         }
 
-        view.findViewById<Button>(R.id.btn_exit).setOnClickListener {
+        btnExit.setOnClickListener {
             dialog.dismiss()
             finish()
+        }
+
+        dialog.setOnDismissListener {
+            if (startButtonRef === btnStart) {
+                startButtonRef = null
+            }
         }
 
         dialog.show()

@@ -41,9 +41,9 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.glide)
+    implementation(libs.glide.v4160)
+    implementation(libs.material.v1120)
     implementation(libs.androidx.appcompat)
-    implementation (libs.material.v1110)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

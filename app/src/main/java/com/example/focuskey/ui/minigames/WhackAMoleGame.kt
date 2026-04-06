@@ -14,8 +14,12 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.media.AudioAttributes
 import android.media.SoundPool
+import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Color
+import androidx.lifecycle.Observer
+import com.example.focuskey.data.KeyManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -24,9 +28,9 @@ import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.focuskey.R
+import com.example.focuskey.ui.setupKeysActionBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -69,6 +73,7 @@ class WhackAMoleGame : AppCompatActivity() {
     private var moleEndSoundId = 0
     private var hitSoundId = 0
 
+    private var startButtonRef: Button? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,6 +87,12 @@ class WhackAMoleGame : AppCompatActivity() {
         progressBar.progress = totalDuration.toInt()
 
         supportActionBar?.title = "Ударь крота"
+        setupKeysActionBar()
+
+        KeyManager.keysLiveData.observe(this) { keyCount ->
+            startButtonRef?.isEnabled = keyCount > 0
+            startButtonRef?.alpha = if (keyCount > 0) 1f else 0.5f
+        }
 
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
@@ -107,16 +118,37 @@ class WhackAMoleGame : AppCompatActivity() {
             .setCancelable(false)
             .create()
 
-        dialog.window?.setBackgroundDrawable(ColorDrawable(0x00000000))
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-        view.findViewById<View>(R.id.btn_start).setOnClickListener {
+        val btnStart = view.findViewById<Button>(R.id.btn_start)
+        val btnExit = view.findViewById<Button>(R.id.btn_exit)
+
+        startButtonRef = btnStart
+
+        val currentKeys = KeyManager.getKeys()
+        btnStart.isEnabled = currentKeys > 0
+        btnStart.alpha = if (currentKeys > 0) 1f else 0.5f
+
+        btnStart.setOnClickListener {
+            if (!KeyManager.spendKeys(1)) {
+                btnStart.isEnabled = false
+                btnStart.alpha = 0.5f
+                return@setOnClickListener
+            }
+
             dialog.dismiss()
             startGame()
         }
 
-        view.findViewById<View>(R.id.btn_exit).setOnClickListener {
+        btnExit.setOnClickListener {
             dialog.dismiss()
             finish()
+        }
+
+        dialog.setOnDismissListener {
+            if (startButtonRef === btnStart) {
+                startButtonRef = null
+            }
         }
 
         dialog.show()
@@ -280,21 +312,21 @@ class WhackAMoleGame : AppCompatActivity() {
                 override fun onLoadFailed(
                     e: GlideException?,
                     model: Any?,
-                    target: Target<GifDrawable>?,
+                    target: Target<GifDrawable>,
                     isFirstResource: Boolean
                 ): Boolean {
                     return false
                 }
 
                 override fun onResourceReady(
-                    resource: GifDrawable?,
-                    model: Any?,
+                    resource: GifDrawable,
+                    model: Any,
                     target: Target<GifDrawable>?,
-                    dataSource: DataSource?,
+                    dataSource: DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
-                    resource?.setLoopCount(1)
-                    resource?.start()
+                    resource.setLoopCount(1)
+                    resource.start()
                     activeGifDrawable = resource
 
                     playSound(moleStartSoundId)
@@ -366,21 +398,21 @@ class WhackAMoleGame : AppCompatActivity() {
                 override fun onLoadFailed(
                     e: GlideException?,
                     model: Any?,
-                    target: Target<GifDrawable>?,
+                    target: Target<GifDrawable>,
                     isFirstResource: Boolean
                 ): Boolean {
                     return false
                 }
 
                 override fun onResourceReady(
-                    resource: GifDrawable?,
-                    model: Any?,
+                    resource: GifDrawable,
+                    model: Any,
                     target: Target<GifDrawable>?,
-                    dataSource: DataSource?,
+                    dataSource: DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
-                    resource?.setLoopCount(1)
-                    resource?.start()
+                    resource.setLoopCount(1)
+                    resource.start()
 
                     val duration = 1600L
 

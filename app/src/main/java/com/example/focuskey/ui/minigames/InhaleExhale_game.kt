@@ -15,6 +15,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Observer
+import com.example.focuskey.data.KeyManager
 import com.example.focuskey.R
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource
@@ -26,6 +28,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.example.focuskey.ui.setupKeysActionBar
 
 
 class InhaleExhale_game : AppCompatActivity() {
@@ -38,6 +41,7 @@ class InhaleExhale_game : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var vibrator: Vibrator
 
+    private var startButtonRef: Button? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +55,12 @@ class InhaleExhale_game : AppCompatActivity() {
         }
 
         supportActionBar?.title = "Вдох-выдох"
+        setupKeysActionBar()
+
+        KeyManager.keysLiveData.observe(this) { keyCount ->
+            startButtonRef?.isEnabled = keyCount > 0
+            startButtonRef?.alpha = if (keyCount > 0) 1f else 0.5f
+        }
 
         text = findViewById(R.id.textView)
         progressBar = findViewById(R.id.progressBar)
@@ -68,7 +78,18 @@ class InhaleExhale_game : AppCompatActivity() {
         val btnStart = dialogView.findViewById<Button>(R.id.btn_start)
         val btnExit = dialogView.findViewById<Button>(R.id.btn_exit)
 
+        startButtonRef = btnStart
+
+        val currentKeys = KeyManager.getKeys()
+        btnStart.isEnabled = currentKeys > 0
+        btnStart.alpha = if (currentKeys > 0) 1f else 0.5f
+
         btnStart.setOnClickListener {
+            if (!KeyManager.spendKeys(1)) {
+                btnStart.isEnabled = false
+                btnStart.alpha = 0.5f
+                return@setOnClickListener
+            }
             dialog.dismiss()
             val imageView = findViewById<ImageView>(R.id.imageView)
             Glide.with(this)
@@ -78,21 +99,21 @@ class InhaleExhale_game : AppCompatActivity() {
                     override fun onLoadFailed(
                         e: GlideException?,
                         model: Any?,
-                        target: Target<GifDrawable>?,
+                        target: Target<GifDrawable>,
                         isFirstResource: Boolean
                     ): Boolean {
                         return false
                     }
 
                     override fun onResourceReady(
-                        resource: GifDrawable?,
-                        model: Any?,
+                        resource: GifDrawable,
+                        model: Any,
                         target: Target<GifDrawable>?,
-                        dataSource: DataSource?,
+                        dataSource: DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
-                        resource?.startFromFirstFrame()
-                        resource?.setLoopCount(7)
+                        resource.startFromFirstFrame()
+                        resource.setLoopCount(7)
 
                         stopAnimations()
 
@@ -143,6 +164,12 @@ class InhaleExhale_game : AppCompatActivity() {
         btnExit.setOnClickListener {
             finish()
             dialog.dismiss()
+        }
+
+        dialog.setOnDismissListener {
+            if (startButtonRef === btnStart) {
+                startButtonRef = null
+            }
         }
 
         dialog.show()
