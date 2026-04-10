@@ -15,6 +15,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.focuskey.R
+import com.example.focuskey.data.SessionStorage
 import com.example.focuskey.databinding.FragmentTimerBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.w3c.dom.Text
@@ -70,6 +71,10 @@ class TimerActivity : Fragment() {
         count_down = binding.countDown
         state_text = binding.stateText
         pause_button = binding.pauseButton
+
+        viewModel.saveSessionEvent.observe(viewLifecycleOwner) { session ->
+            SessionStorage(requireContext()).addSession(session)
+        }
 
         start_button.setOnClickListener {
             start_button.visibility = View.INVISIBLE
@@ -199,6 +204,9 @@ class TimerActivity : Fragment() {
         submit_button.setOnClickListener {
             ShowCountdownDialog()
             dialog.dismiss()
+
+            viewModel.selectedDurationMinutes = mins.toInt()
+            viewModel.selectedTag = selectedTag
 
             cancel_button.postDelayed({
                 cancel_button.visibility = View.VISIBLE

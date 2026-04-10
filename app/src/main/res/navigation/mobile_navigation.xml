@@ -8,9 +8,9 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.example.focuskey.ui.achievements.AchievementsActivity"
+        android:name="com.example.focuskey.ui.history.HistoryActivity"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_achievements" />
+        tools:layout="@layout/fragment_history" />
 
     <fragment
         android:id="@+id/navigation_dashboard"
