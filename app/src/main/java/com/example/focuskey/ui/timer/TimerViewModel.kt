@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import com.example.focuskey.data.Session
 import com.example.focuskey.utils.SingleLiveEvent
 import com.example.focuskey.data.KeyManager
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.min
 
 class TimerViewModel: ViewModel() {
@@ -146,16 +149,15 @@ class TimerViewModel: ViewModel() {
     }
 
     private fun saveSession(status: String) {
-        val currentDate = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault())
-            .format(java.util.Date())
-        val currentTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-            .format(java.util.Date())
+        val currentDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
+        val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         val session = Session(
             startDate = currentDate,
             startTime = currentTime,
             durationMinutes = selectedDurationMinutes,
             tag = selectedTag,
-            status = status
+            status = status,
+            keysEarned = sessionKeys
         )
         _saveSessionEvent.value = session
         sessionKeys = 0

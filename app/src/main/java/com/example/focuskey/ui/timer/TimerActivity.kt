@@ -131,7 +131,7 @@ class TimerActivity : Fragment() {
         session_info = binding.sessionInfo
 
         viewModel.saveSessionEvent.observe(viewLifecycleOwner) { session ->
-            SessionStorage(requireContext()).addSession(session)
+            SessionStorage.getInstance(requireContext()).addSession(session)
         }
 
         start_button.setOnClickListener {

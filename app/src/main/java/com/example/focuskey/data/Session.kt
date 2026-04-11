@@ -8,5 +8,6 @@ data class Session(
     val startTime: String,
     val durationMinutes: Int,
     val tag: String,
-    val status: String
+    val status: String,
+    val keysEarned: Int = 0
 )

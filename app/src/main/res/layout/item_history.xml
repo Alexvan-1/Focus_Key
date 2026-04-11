@@ -13,23 +13,47 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/item_number"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Сессия №1"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginBottom="8dp"
-            android:textColor="#FFFFFF" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:id="@+id/item_number"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Сессия №1"
+                android:gravity="end"
+                android:textStyle="bold" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="end"
+                android:baselineAligned="false">
+                <TextView
+                    android:id="@+id/item_keys"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/item_key_icon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/key_icon"
+                    android:contentDescription="Ключи"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:baselineAligned="false">
-
             <TextView
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -38,7 +62,6 @@
                 android:textStyle="bold"
                 android:gravity="end"
                 android:paddingEnd="8dp" />
-
             <TextView
                 android:id="@+id/item_date"
                 android:layout_width="0dp"
@@ -54,16 +77,14 @@
             android:orientation="horizontal"
             android:layout_marginTop="8dp"
             android:baselineAligned="false">
-
             <TextView
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Время:"
+                android:text="Время начала:"
                 android:textStyle="bold"
                 android:gravity="end"
                 android:paddingEnd="8dp" />
-
             <TextView
                 android:id="@+id/item_time"
                 android:layout_width="0dp"
@@ -79,7 +100,6 @@
             android:orientation="horizontal"
             android:layout_marginTop="8dp"
             android:baselineAligned="false">
-
             <TextView
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -88,7 +108,6 @@
                 android:textStyle="bold"
                 android:gravity="end"
                 android:paddingEnd="8dp" />
-
             <TextView
                 android:id="@+id/item_duration"
                 android:layout_width="0dp"
@@ -104,7 +123,6 @@
             android:orientation="horizontal"
             android:layout_marginTop="8dp"
             android:baselineAligned="false">
-
             <TextView
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -113,23 +131,33 @@
                 android:textStyle="bold"
                 android:gravity="end"
                 android:paddingEnd="8dp" />
-
-            <TextView
-                android:id="@+id/item_tag"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:text="--"
-                android:gravity="start" />
+                android:orientation="horizontal"
+                android:gravity="start">
+                <TextView
+                    android:id="@+id/item_tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--" />
+                <ImageView
+                    android:id="@+id/tag_color"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginStart="6dp"
+                    android:src="@drawable/shape_circle"
+                    android:contentDescription="Цвет тега" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="8dp"
             android:baselineAligned="false">
-
             <TextView
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
@@ -138,20 +166,17 @@
                 android:textStyle="bold"
                 android:gravity="end"
                 android:paddingEnd="8dp" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:orientation="horizontal"
                 android:gravity="start">
-
                 <TextView
                     android:id="@+id/item_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="--" />
-
                 <TextView
                     android:id="@+id/item_status_icon"
                     android:layout_width="wrap_content"
