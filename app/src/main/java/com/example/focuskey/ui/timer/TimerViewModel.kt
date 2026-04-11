@@ -4,6 +4,8 @@ import android.os.CountDownTimer
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.focuskey.data.Session
+import com.example.focuskey.utils.SingleLiveEvent
 import com.example.focuskey.data.KeyManager
 import kotlin.math.min
 
@@ -15,6 +17,9 @@ class TimerViewModel: ViewModel() {
         WORKING,
         BREAK
     }
+
+    var selectedDurationMinutes: Int = 20
+    var selectedTag: String = "Другое"
 
     private var isPaused = false
     private var pausedTimeLeft: Long = 0L
@@ -34,6 +39,9 @@ class TimerViewModel: ViewModel() {
 
     private val _remainingWorkTime = MutableLiveData<Long>(0)
     val remainingWorkTime: LiveData<Long> = _remainingWorkTime
+
+    private val _saveSessionEvent = SingleLiveEvent<Session>()
+    val saveSessionEvent: LiveData<Session> = _saveSessionEvent
 
     var currentTimer: CountDownTimer? = null
     private var breakTimer: CountDownTimer? = null
@@ -120,6 +128,7 @@ class TimerViewModel: ViewModel() {
     private fun completeSession() {
         _timerState.value = TimerState.IDLE
         _remainingWorkTime.value = 0
+        saveSession(status = "Завершена")
         sessionKeys = 0
     }
 
@@ -131,6 +140,24 @@ class TimerViewModel: ViewModel() {
         breakTimer?.cancel()
         _timerState.value = TimerState.IDLE
         _remainingWorkTime.value = 0
+        if (selectedDurationMinutes > 0) {
+            saveSession(status = "Отменена")
+        }
+    }
+
+    private fun saveSession(status: String) {
+        val currentDate = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault())
+            .format(java.util.Date())
+        val currentTime = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+            .format(java.util.Date())
+        val session = Session(
+            startDate = currentDate,
+            startTime = currentTime,
+            durationMinutes = selectedDurationMinutes,
+            tag = selectedTag,
+            status = status
+        )
+        _saveSessionEvent.value = session
         sessionKeys = 0
     }
 
