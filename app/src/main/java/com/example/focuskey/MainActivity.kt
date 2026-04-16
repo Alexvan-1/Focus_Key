@@ -89,6 +89,15 @@ class MainActivity : AppCompatActivity(), TimerStateListener {
             item.isEnabled = true
         }
     }
+
+    override fun forceSwitchToTimer() {
+        if (binding.navView.selectedItemId != R.id.navigation_timer) {
+            binding.navView.selectedItemId = R.id.navigation_timer
+            switchFragment(R.id.navigation_timer)
+            supportActionBar?.title = "Таймер"
+        }
+    }
+
     private fun switchFragment(tabId: Int) {
         if (tabId == currentTabId) return
 

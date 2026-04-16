@@ -1,9 +1,12 @@
 package com.example.focuskey.data
 
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+
 
 object KeyManager {
 
@@ -23,6 +26,10 @@ object KeyManager {
     }
 
     fun addKeys(amount: Int = 1) {
+        if (!::prefs.isInitialized) {
+            Log.e("KeyManager", "prefs not initialized, call init first")
+            return
+        }
         val current = getKeys()
         prefs.edit().putInt("keys_count", current + amount).apply()
         _keysLiveData.postValue(current + amount)

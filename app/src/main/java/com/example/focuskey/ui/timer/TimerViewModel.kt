@@ -1,18 +1,20 @@
 package com.example.focuskey.ui.timer
 
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.focuskey.data.KeyManager
 import com.example.focuskey.data.Session
 import com.example.focuskey.utils.SingleLiveEvent
-import com.example.focuskey.data.KeyManager
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.min
 
-class TimerViewModel: ViewModel() {
+class TimerViewModel : ViewModel() {
 
     enum class TimerState {
         IDLE,
@@ -24,13 +26,13 @@ class TimerViewModel: ViewModel() {
     var selectedDurationMinutes: Int = 20
     var selectedTag: String = "Другое"
 
+    private var isSessionSaved = false
     private var isPaused = false
-    private var pausedTimeLeft: Long = 0L
-    private var _isPaused = MutableLiveData(false)
-    private var remainingMs: Long = 0L
-    val isPausedLive: LiveData<Boolean> = _isPaused
 
-    private var sessionKeys = 0
+    private var totalWorkMs: Long = 0L
+    private var remainingWorkMs: Long = 0L
+    private var currentPhaseRemainingMs: Long = 0L
+    private var currentWorkBlockMs: Long = 0L
 
     var videoPosition: Int = 0
 
@@ -40,14 +42,19 @@ class TimerViewModel: ViewModel() {
     private val _displayTime = MutableLiveData<String>()
     val displayTime: LiveData<String> = _displayTime
 
-    private val _remainingWorkTime = MutableLiveData<Long>(0)
-    val remainingWorkTime: LiveData<Long> = _remainingWorkTime
-
-    private val _saveSessionEvent = SingleLiveEvent<Session>()
+    private val _saveSessionEvent = MutableLiveData<Session>()
     val saveSessionEvent: LiveData<Session> = _saveSessionEvent
 
-    var currentTimer: CountDownTimer? = null
+    private val _isPaused = MutableLiveData(false)
+    val isPausedLive: LiveData<Boolean> = _isPaused
+
+    private val _switchToTimerEvent = SingleLiveEvent<Unit>()
+    val switchToTimerEvent: LiveData<Unit> = _switchToTimerEvent
+
+    private var activeTimer: CountDownTimer? = null
     private var breakTimer: CountDownTimer? = null
+
+    private var sessionKeys = 0
 
     companion object {
         const val WORK_CYCLE = 20 * 60 * 1000L
@@ -55,97 +62,214 @@ class TimerViewModel: ViewModel() {
     }
 
     fun startWorkSession(totalMinutes: Long) {
+        cancelInternalTimers()
+
         _timerState.value = TimerState.COUNTDOWN
-        _remainingWorkTime.value = totalMinutes
+        totalWorkMs = totalMinutes * 60_000L
+        remainingWorkMs = totalWorkMs
+        currentPhaseRemainingMs = 0L
+        currentWorkBlockMs = 0L
+        sessionKeys = 0
+        isSessionSaved = false
+        isPaused = false
+        _isPaused.value = false
     }
 
     fun startWorkTimer() {
-        _timerState.value = TimerState.WORKING
-
-        val workMinutes = min(20, _remainingWorkTime.value ?: 0).toInt()
-        val duration = workMinutes * 60 * 1000L
-        remainingMs = duration
-
-        createTimer(remainingMs, workMinutes)
-
+        if (_timerState.value == TimerState.WORKING || _timerState.value == TimerState.BREAK) return
+        startNextWorkBlock()
     }
 
-    private fun createTimer(durationMs: Long, workMinutes: Int) {
-        currentTimer?.cancel()
-        currentTimer = object : CountDownTimer(durationMs, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                remainingMs = millisUntilFinished
-                _displayTime.value = formatTime(millisUntilFinished)
+    private fun startNextWorkBlock() {
+        if (remainingWorkMs <= 0L) {
+            completeSession()
+            return
+        }
+
+        _timerState.value = TimerState.WORKING
+        currentWorkBlockMs = min(WORK_CYCLE, remainingWorkMs)
+
+        startPhaseTimer(
+            durationMs = currentWorkBlockMs,
+            phase = TimerState.WORKING
+        ) {
+            if (currentWorkBlockMs == WORK_CYCLE) {
+                sessionKeys++
+                KeyManager.addKeys(1)
             }
+            remainingWorkMs -= currentWorkBlockMs
 
-            override fun onFinish() {
-                _displayTime.value = "0:00:00"
-
-                if (workMinutes >= 20) {
-                    sessionKeys++
-                    KeyManager.addKeys(1)
-                }
-
-                val remaining = (_remainingWorkTime.value ?: 0) - workMinutes
-                _remainingWorkTime.value = remaining
-
-                if (remaining > 0 && workMinutes >= 20) {
-                    startBreakTimer()
-                } else {
-                    completeSession()
-                }
+            if (remainingWorkMs > 0L) {
+                startBreakTimer()
+            } else {
+                completeSession()
             }
-        }.start()
+        }
     }
 
     private fun startBreakTimer() {
         _timerState.value = TimerState.BREAK
-        _displayTime.value = formatTime(BREAK_DURATION)
+        startPhaseTimer(
+            durationMs = BREAK_DURATION,
+            phase = TimerState.BREAK
+        ) {
+            startNextWorkBlock()
+        }
 
-        breakTimer?.cancel()
-        breakTimer = object : CountDownTimer(BREAK_DURATION, 1000) {
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (_timerState.value == TimerState.BREAK) {
+                _switchToTimerEvent.call()
+            }
+        }, BREAK_DURATION - 3000)
+    }
+
+    private fun startPhaseTimer(
+        durationMs: Long,
+        phase: TimerState,
+        onFinishAction: () -> Unit
+    ) {
+        cancelActiveTimerOnly()
+        currentPhaseRemainingMs = durationMs
+        isPaused = false
+        _isPaused.value = false
+
+        activeTimer = object : CountDownTimer(durationMs, 1000) {
             override fun onTick(millisUntilFinished: Long) {
+                currentPhaseRemainingMs = millisUntilFinished
                 _displayTime.value = formatTime(millisUntilFinished)
             }
 
             override fun onFinish() {
-                startWorkTimer()
+                currentPhaseRemainingMs = 0L
+                onFinishAction()
             }
         }.start()
+
+        _timerState.value = phase
+        _displayTime.value = formatTime(durationMs)
     }
 
     fun pauseTimer() {
-        currentTimer?.cancel()
+        if (_timerState.value == TimerState.IDLE) return
+        activeTimer?.cancel()
+        breakTimer?.cancel()
+        activeTimer = null
+        breakTimer = null
         isPaused = true
         _isPaused.value = true
     }
 
     fun resumeTimer() {
+        if (!isPaused) return
+        if (currentPhaseRemainingMs <= 0L) return
+
+        val phase = _timerState.value ?: TimerState.IDLE
+        when (phase) {
+            TimerState.WORKING -> {
+                resumePhaseTimer(
+                    durationMs = currentPhaseRemainingMs,
+                    phase = TimerState.WORKING
+                ) {
+                    if (currentWorkBlockMs == WORK_CYCLE) {
+                        sessionKeys++
+                        KeyManager.addKeys(1)
+                    }
+                    remainingWorkMs -= currentWorkBlockMs
+                    if (remainingWorkMs > 0L) {
+                        startBreakTimer()
+                    } else {
+                        completeSession()
+                    }
+                }
+            }
+
+            TimerState.BREAK -> {
+                resumePhaseTimer(
+                    durationMs = currentPhaseRemainingMs,
+                    phase = TimerState.BREAK
+                ) {
+                    startNextWorkBlock()
+                }
+            }
+
+            else -> Unit
+        }
+
         isPaused = false
         _isPaused.value = false
+    }
 
-        createTimer(remainingMs, (remainingMs / 60000).toInt())
+    private fun resumePhaseTimer(
+        durationMs: Long,
+        phase: TimerState,
+        onFinishAction: () -> Unit
+    ) {
+        cancelActiveTimerOnly()
 
+        activeTimer = object : CountDownTimer(durationMs, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                currentPhaseRemainingMs = millisUntilFinished
+                _displayTime.value = formatTime(millisUntilFinished)
+            }
+
+            override fun onFinish() {
+                currentPhaseRemainingMs = 0L
+                onFinishAction()
+            }
+        }.start()
+
+        _timerState.value = phase
+        _displayTime.value = formatTime(durationMs)
     }
 
     private fun completeSession() {
+        if (isSessionSaved) return
+
+        cancelInternalTimers()
         _timerState.value = TimerState.IDLE
-        _remainingWorkTime.value = 0
+        _displayTime.value = "0:00:00"
+        remainingWorkMs = 0L
+        currentPhaseRemainingMs = 0L
+        currentWorkBlockMs = 0L
+
         saveSession(status = "Завершена")
+        isSessionSaved = true
         sessionKeys = 0
     }
 
     fun cancelAll() {
+        if (isSessionSaved && _timerState.value == TimerState.IDLE) return
+
+        cancelInternalTimers()
+        _timerState.value = TimerState.IDLE
+        _displayTime.value = "0:00:00"
+
+        if (selectedDurationMinutes > 0 && !isSessionSaved) {
+            saveSession(status = "Отменена")
+            isSessionSaved = true
+        }
+
+        remainingWorkMs = 0L
+        currentPhaseRemainingMs = 0L
+        currentWorkBlockMs = 0L
+        totalWorkMs = 0L
+        sessionKeys = 0
         isPaused = false
         _isPaused.value = false
-        pausedTimeLeft = 0L
-        currentTimer?.cancel()
+    }
+
+    private fun cancelInternalTimers() {
+        activeTimer?.cancel()
         breakTimer?.cancel()
-        _timerState.value = TimerState.IDLE
-        _remainingWorkTime.value = 0
-        if (selectedDurationMinutes > 0) {
-            saveSession(status = "Отменена")
-        }
+        activeTimer = null
+        breakTimer = null
+    }
+
+    private fun cancelActiveTimerOnly() {
+        activeTimer?.cancel()
+        breakTimer?.cancel()
+        activeTimer = null
+        breakTimer = null
     }
 
     private fun saveSession(status: String) {
@@ -160,7 +284,6 @@ class TimerViewModel: ViewModel() {
             keysEarned = sessionKeys
         )
         _saveSessionEvent.value = session
-        sessionKeys = 0
     }
 
     private fun formatTime(millis: Long): String {
@@ -170,12 +293,10 @@ class TimerViewModel: ViewModel() {
         return String.format("%01d:%02d:%02d", hours, minutes, seconds)
     }
 
-    fun getKeysLiveData(): LiveData<Int> {
-        return KeyManager.keysLiveData
-    }
+    fun getKeysLiveData(): LiveData<Int> = KeyManager.keysLiveData
 
     override fun onCleared() {
         super.onCleared()
-        cancelAll()
+        cancelInternalTimers()
     }
 }
