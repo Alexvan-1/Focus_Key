@@ -35,19 +35,19 @@ class HistoryActivity : Fragment() {
         recyclerView = view.findViewById(R.id.history_recycler_view)
         emptyTextView = view.findViewById(R.id.empty_history_text)
 
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        adapter = HistoryAdapter(emptyList())
+        recyclerView.adapter = adapter
+
         storage.sessions.observe(viewLifecycleOwner) { sessions ->
             adapter.updateData(sessions)
             updateVisibility(sessions.isEmpty())
         }
-
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        adapter = HistoryAdapter(emptyList())
-        recyclerView.adapter = adapter
     }
 
     private fun updateVisibility(isEmpty: Boolean) {
-        recyclerView.visibility = if (isEmpty) View.GONE else View.VISIBLE
-        emptyTextView.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        recyclerView.visibility = if (isEmpty) View.INVISIBLE else View.VISIBLE
+        emptyTextView.visibility = if (isEmpty) View.VISIBLE else View.INVISIBLE
     }
 
     override fun onResume() {

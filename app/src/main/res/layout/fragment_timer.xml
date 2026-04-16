@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="116dp"
         android:text="           "
-        android:textColor="@color/on_primary_color"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.481"
@@ -52,12 +51,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="488dp"
         android:alpha="0"
-        android:text="Пауза"
         android:visibility="invisible"
+        android:text="Пауза"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <Button
         android:id="@+id/cancel_button"
@@ -84,15 +82,51 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/session_info"
+    <LinearLayout
+        android:id="@+id/session_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginTop="564dp"
-        android:text="            "
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/session_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20 мин" />
+
+        <ImageView
+            android:id="@+id/time_dot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/green_dot"
+            android:visibility="invisible" />
+
+        <View
+            android:layout_width="16dp"
+            android:layout_height="1dp"/>
+
+        <TextView
+            android:id="@+id/session_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Учёба" />
+
+        <ImageView
+            android:id="@+id/tag_dot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="6dp"
+            android:src="@drawable/shape_circle"
+            android:visibility="invisible" />
+
+    </LinearLayout>
 
     <VideoView
         android:id="@+id/videoView"

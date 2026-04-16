@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="410dp"
     android:layout_height="700dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:gravity="center">
 
@@ -14,14 +15,16 @@
         android:drawableEnd="@drawable/key_icon"
         android:drawablePadding="-90dp"
         android:text="Старт     1"
-        android:textSize="27sp" />
+        android:textSize="27sp"
+        app:cornerRadius="24dp"/>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_exit"
         android:layout_width="300dp"
         android:layout_height="80dp"
         android:backgroundTint="#F44336"
         android:text="Выйти"
-        android:textSize="27sp" />
+        android:textSize="27sp"
+        app:cornerRadius="24dp" />
 
 </LinearLayout>
