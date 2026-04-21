@@ -53,6 +53,8 @@ class TimerViewModel : ViewModel() {
 
     private var activeTimer: CountDownTimer? = null
     private var breakTimer: CountDownTimer? = null
+    private lateinit var currentDate: String
+    private lateinit var currentTime: String
 
     private var sessionKeys = 0
 
@@ -63,7 +65,8 @@ class TimerViewModel : ViewModel() {
 
     fun startWorkSession(totalMinutes: Long) {
         cancelInternalTimers()
-
+        currentDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
+        currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         _timerState.value = TimerState.COUNTDOWN
         totalWorkMs = totalMinutes * 60_000L
         remainingWorkMs = totalWorkMs
@@ -273,8 +276,6 @@ class TimerViewModel : ViewModel() {
     }
 
     private fun saveSession(status: String) {
-        val currentDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
-        val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         val session = Session(
             startDate = currentDate,
             startTime = currentTime,
