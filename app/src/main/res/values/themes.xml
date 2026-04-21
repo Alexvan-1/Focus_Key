@@ -1,5 +1,6 @@
 <resources>
     <style name="Theme.FocusKey" parent="Theme.MaterialComponents.DayNight">
+        <item name="android:textColor">@color/white</item>
         <item name="actionBarStyle">@style/MyActionBar</item>
         <item name="colorPrimary">@color/gold</item>
         <item name="colorPrimaryVariant">@color/gold_dark</item>
