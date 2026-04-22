@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.core.view.forEach
 import com.example.focuskey.data.KeyManager
 import androidx.fragment.app.Fragment
@@ -35,12 +36,11 @@ class MainActivity : AppCompatActivity(), TimerStateListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportActionBar?.apply {
-            setDisplayShowCustomEnabled(true)
-            setCustomView(R.layout.layout_actionbar_keys)
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
-        keysTextView = supportActionBar?.customView?.findViewById(R.id.text_key_count)!!
+        setSupportActionBar(findViewById(R.id.toolbar))
+
+        keysTextView = findViewById(R.id.text_key_count)
 
         KeyManager.keysLiveData.observe(this) { keyCount ->
             keysTextView.text = keyCount.toString()

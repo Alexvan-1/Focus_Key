@@ -103,6 +103,7 @@ class TimerActivity : Fragment() {
         if (isActive) {
             staticImage.visibility = View.GONE
             videoView.visibility = View.VISIBLE
+            videoView.seekTo(0)
             videoView.start()
         } else {
             videoView.pause()
@@ -176,17 +177,19 @@ class TimerActivity : Fragment() {
                     session_tag.visibility = View.VISIBLE
                     tag_dot.visibility = View.VISIBLE
                     iv_time.visibility = View.VISIBLE
+
+                    updateButtonsForWork(isFirstSessionStart)
                 }
+
                 TimerViewModel.TimerState.BREAK -> {
                     timerListener?.unlockNavigation()
                     stopTimerIconAnimation()
                     setNavIcons(false)
                     state_text.text = "Перерыв"
-                    cancel_button.visibility = View.VISIBLE
-                    cancel_button.alpha = 1f
-                    pause_button.visibility = View.INVISIBLE
                     setSessionMode(false)
+                    updateButtonsForBreak()
                 }
+
                 TimerViewModel.TimerState.IDLE -> {
                     timerListener?.unlockNavigation()
                     stopTimerIconAnimation()
@@ -202,6 +205,7 @@ class TimerActivity : Fragment() {
                     tag_dot.visibility = View.INVISIBLE
                     iv_time.visibility = View.INVISIBLE
                 }
+
                 else -> {}
             }
         }
@@ -222,6 +226,25 @@ class TimerActivity : Fragment() {
         R.drawable.timer_270,
         R.drawable.timer
     )
+
+    private fun updateButtonsForWork(firstSession: Boolean) {
+        if (firstSession) {
+            cancel_button.visibility = View.VISIBLE
+            cancel_button.alpha = 1f
+            pause_button.visibility = View.INVISIBLE
+        } else {
+            cancel_button.visibility = View.INVISIBLE
+            pause_button.visibility = View.VISIBLE
+            pause_button.alpha = 1f
+            pause_button.text = "Пауза"
+        }
+    }
+
+    private fun updateButtonsForBreak() {
+        cancel_button.visibility = View.VISIBLE
+        cancel_button.alpha = 1f
+        pause_button.visibility = View.INVISIBLE
+    }
 
     private fun startTimerIconAnimation() {
         stopTimerIconAnimation()
@@ -363,6 +386,7 @@ class TimerActivity : Fragment() {
                 if (isFirstSessionStart) {
                     cancel_button.visibility = View.VISIBLE
                     count_down.visibility = View.VISIBLE
+                    pause_button.visibility = View.INVISIBLE
 
                     animator_button = cancel_button.animate()
                         .alpha(0f)
@@ -370,9 +394,9 @@ class TimerActivity : Fragment() {
                         .withEndAction {
                             cancel_button.visibility = View.INVISIBLE
                             pause_button.visibility = View.VISIBLE
-                            pause_button.animate()
-                                .alpha(1f)
-                                .setDuration(5000)
+                            pause_button.alpha = 1f
+                            pause_button.text = "Пауза"
+                            isFirstSessionStart = false
                         }
                     animator_button?.start()
 
@@ -393,11 +417,8 @@ class TimerActivity : Fragment() {
 
                     animator_text?.start()
 
-                    isFirstSessionStart = false
                 } else {
-                    cancel_button.visibility = View.INVISIBLE
-                    pause_button.visibility = View.VISIBLE
-                    pause_button.alpha = 1f
+                    updateButtonsForWork(false)
                 }
 
                 viewModel.startWorkSession(mins)
@@ -422,7 +443,6 @@ class TimerActivity : Fragment() {
                 }
 
                 tag_dot.setColorFilter(ContextCompat.getColor(requireContext(), color))
-
             }, 3000)
         }
 

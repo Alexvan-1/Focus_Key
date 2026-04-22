@@ -28,7 +28,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.ProgressBar
 import android.widget.TextView
-import com.example.focuskey.ui.setupKeysActionBar
+import androidx.core.view.WindowCompat
 
 
 class InhaleExhale_game : AppCompatActivity() {
@@ -42,6 +42,7 @@ class InhaleExhale_game : AppCompatActivity() {
     private lateinit var vibrator: Vibrator
 
     private var startButtonRef: Button? = null
+    private lateinit var keysTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,8 +55,10 @@ class InhaleExhale_game : AppCompatActivity() {
             insets
         }
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        keysTextView = findViewById(R.id.text_key_count)
         supportActionBar?.title = "Вдох-выдох"
-        setupKeysActionBar()
 
         KeyManager.keysLiveData.observe(this) { keyCount ->
             startButtonRef?.isEnabled = keyCount > 0

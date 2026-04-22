@@ -18,6 +18,7 @@ import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.graphics.Color
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Observer
 import com.example.focuskey.data.KeyManager
 import com.bumptech.glide.Glide
@@ -28,7 +29,6 @@ import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.focuskey.R
-import com.example.focuskey.ui.setupKeysActionBar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -74,6 +74,7 @@ class WhackAMoleGame : AppCompatActivity() {
     private var hitSoundId = 0
 
     private var startButtonRef: Button? = null
+    private lateinit var keysTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,8 +87,10 @@ class WhackAMoleGame : AppCompatActivity() {
         progressBar.max = totalDuration.toInt()
         progressBar.progress = totalDuration.toInt()
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        keysTextView = findViewById(R.id.text_key_count)
         supportActionBar?.title = "Ударь крота"
-        setupKeysActionBar()
 
         KeyManager.keysLiveData.observe(this) { keyCount ->
             startButtonRef?.isEnabled = keyCount > 0

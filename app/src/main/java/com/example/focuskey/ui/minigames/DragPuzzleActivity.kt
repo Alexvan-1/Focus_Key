@@ -21,11 +21,12 @@ import android.animation.ObjectAnimator
 import android.media.AudioAttributes
 import android.media.SoundPool
 import android.view.animation.DecelerateInterpolator
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import com.example.focuskey.data.KeyManager
 import com.example.focuskey.R
-import com.example.focuskey.ui.setupKeysActionBar
 import kotlin.math.min
 
 class DragPuzzleActivity : AppCompatActivity() {
@@ -71,6 +72,7 @@ class DragPuzzleActivity : AppCompatActivity() {
     private var rotateSoundId = 0
 
     private var startButtonRef: Button? = null
+    private lateinit var keysTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,8 +86,10 @@ class DragPuzzleActivity : AppCompatActivity() {
         progressBar.max = totalDuration.toInt()
         progressBar.progress = totalDuration.toInt()
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        keysTextView = findViewById(R.id.text_key_count)
         supportActionBar?.title = "Пазл"
-        setupKeysActionBar()
 
         KeyManager.keysLiveData.observe(this) { keyCount ->
             startButtonRef?.isEnabled = keyCount > 0

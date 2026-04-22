@@ -24,8 +24,9 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.graphics.PorterDuff
 import android.view.animation.DecelerateInterpolator
+import android.widget.TextView
+import androidx.core.view.WindowCompat
 import com.example.focuskey.R
-import com.example.focuskey.ui.setupKeysActionBar
 
 class MemoryGameActivity : AppCompatActivity() {
 
@@ -57,6 +58,7 @@ class MemoryGameActivity : AppCompatActivity() {
     private var flipSoundId = 0
 
     private var startButtonRef: Button? = null
+    private lateinit var keysTextView: TextView
 
     private val shapeResources = listOf(
         R.drawable.shape_circle,
@@ -84,8 +86,10 @@ class MemoryGameActivity : AppCompatActivity() {
         progressBar.max = totalDuration.toInt()
         progressBar.progress = totalDuration.toInt()
 
+        setSupportActionBar(findViewById(R.id.toolbar))
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        keysTextView = findViewById(R.id.text_key_count)
         supportActionBar?.title = "Найди пару"
-        setupKeysActionBar()
 
         KeyManager.keysLiveData.observe(this) { keyCount ->
             startButtonRef?.isEnabled = keyCount > 0
