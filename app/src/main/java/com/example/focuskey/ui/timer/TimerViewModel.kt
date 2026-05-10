@@ -53,8 +53,13 @@ class TimerViewModel : ViewModel() {
 
     private var activeTimer: CountDownTimer? = null
     private var breakTimer: CountDownTimer? = null
+    private lateinit var currentDate: String
+    private lateinit var currentTime: String
 
     private var sessionKeys = 0
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var switchToTimerRunnable: Runnable? = null
 
     companion object {
         const val WORK_CYCLE = 20 * 60 * 1000L
@@ -63,7 +68,8 @@ class TimerViewModel : ViewModel() {
 
     fun startWorkSession(totalMinutes: Long) {
         cancelInternalTimers()
-
+        currentDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
+        currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         _timerState.value = TimerState.COUNTDOWN
         totalWorkMs = totalMinutes * 60_000L
         remainingWorkMs = totalWorkMs
@@ -116,11 +122,7 @@ class TimerViewModel : ViewModel() {
             startNextWorkBlock()
         }
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (_timerState.value == TimerState.BREAK) {
-                _switchToTimerEvent.call()
-            }
-        }, BREAK_DURATION - 3000)
+        scheduleTimerSwitch()
     }
 
     private fun startPhaseTimer(
@@ -149,10 +151,30 @@ class TimerViewModel : ViewModel() {
         _displayTime.value = formatTime(durationMs)
     }
 
+    private fun scheduleTimerSwitch() {
+        cancelTimerSwitch()
+
+        val delay = (currentPhaseRemainingMs - 3000L).coerceAtLeast(0L)
+
+        switchToTimerRunnable = Runnable {
+            if (_timerState.value == TimerState.BREAK) {
+                _switchToTimerEvent.call()
+            }
+        }
+
+        mainHandler.postDelayed(switchToTimerRunnable!!, delay)
+    }
+
+    private fun cancelTimerSwitch() {
+        switchToTimerRunnable?.let { mainHandler.removeCallbacks(it) }
+        switchToTimerRunnable = null
+    }
+
     fun pauseTimer() {
         if (_timerState.value == TimerState.IDLE) return
         activeTimer?.cancel()
         breakTimer?.cancel()
+        cancelTimerSwitch()
         activeTimer = null
         breakTimer = null
         isPaused = true
@@ -190,6 +212,7 @@ class TimerViewModel : ViewModel() {
                 ) {
                     startNextWorkBlock()
                 }
+                scheduleTimerSwitch()
             }
 
             else -> Unit
@@ -261,6 +284,7 @@ class TimerViewModel : ViewModel() {
     private fun cancelInternalTimers() {
         activeTimer?.cancel()
         breakTimer?.cancel()
+        cancelTimerSwitch()
         activeTimer = null
         breakTimer = null
     }
@@ -273,8 +297,6 @@ class TimerViewModel : ViewModel() {
     }
 
     private fun saveSession(status: String) {
-        val currentDate = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
-        val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         val session = Session(
             startDate = currentDate,
             startTime = currentTime,

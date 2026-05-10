@@ -66,6 +66,7 @@ class TimerActivity : Fragment() {
     private val timeValues = listOf(20, 40, 60, 80, 100, 120)
 
     private var timerListener: TimerStateListener? = null
+    private var resumeFromPause = false
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -75,6 +76,22 @@ class TimerActivity : Fragment() {
         videoView = view.findViewById(R.id.videoView)
 
         setupVideoPlayer()
+    }
+
+    private fun showWorkUi() {
+        staticImage.visibility = View.GONE
+        videoView.visibility = View.VISIBLE
+        timer_text.visibility = View.VISIBLE
+        session_time.visibility = View.VISIBLE
+        session_tag.visibility = View.VISIBLE
+        tag_dot.visibility = View.VISIBLE
+        iv_time.visibility = View.VISIBLE
+    }
+
+    private fun showBreakUi() {
+        videoView.pause()
+        videoView.visibility = View.GONE
+        staticImage.visibility = View.VISIBLE
     }
 
     private fun setupVideoPlayer() {
@@ -99,17 +116,6 @@ class TimerActivity : Fragment() {
         }
     }
 
-    private fun setSessionMode(isActive: Boolean) {
-        if (isActive) {
-            staticImage.visibility = View.GONE
-            videoView.visibility = View.VISIBLE
-            videoView.start()
-        } else {
-            videoView.pause()
-            videoView.visibility = View.GONE
-            staticImage.visibility = View.VISIBLE
-        }
-    }
 
     override fun onAttach(context: android.content.Context) {
         super.onAttach(context)
@@ -170,29 +176,37 @@ class TimerActivity : Fragment() {
                     startTimerIconAnimation()
                     setNavIcons(true)
                     state_text.text = "Концентрация"
-                    setSessionMode(true)
-                    timer_text.visibility = View.VISIBLE
-                    session_time.visibility = View.VISIBLE
-                    session_tag.visibility = View.VISIBLE
-                    tag_dot.visibility = View.VISIBLE
-                    iv_time.visibility = View.VISIBLE
+                    showWorkUi()
+
+                    if (!resumeFromPause) {
+                        videoView.seekTo(0)
+                        videoView.start()
+                    }
+
+                    updateButtonsForWork(isFirstSessionStart)
+                    resumeFromPause = false
                 }
+
                 TimerViewModel.TimerState.BREAK -> {
                     timerListener?.unlockNavigation()
                     stopTimerIconAnimation()
                     setNavIcons(false)
                     state_text.text = "Перерыв"
-                    cancel_button.visibility = View.VISIBLE
-                    cancel_button.alpha = 1f
-                    pause_button.visibility = View.INVISIBLE
-                    setSessionMode(false)
+                    showBreakUi()
+
+                    viewModel.videoPosition = 0
+                    updateButtonsForBreak()
                 }
+
                 TimerViewModel.TimerState.IDLE -> {
                     timerListener?.unlockNavigation()
                     stopTimerIconAnimation()
                     setNavIcons(false)
                     state_text.text = " "
-                    setSessionMode(false)
+                    showBreakUi()
+
+                    viewModel.videoPosition = 0
+
                     cancel_button.visibility = View.INVISIBLE
                     pause_button.visibility = View.INVISIBLE
                     start_button.visibility = View.VISIBLE
@@ -202,6 +216,7 @@ class TimerActivity : Fragment() {
                     tag_dot.visibility = View.INVISIBLE
                     iv_time.visibility = View.INVISIBLE
                 }
+
                 else -> {}
             }
         }
@@ -222,6 +237,25 @@ class TimerActivity : Fragment() {
         R.drawable.timer_270,
         R.drawable.timer
     )
+
+    private fun updateButtonsForWork(firstSession: Boolean) {
+        if (firstSession) {
+            cancel_button.visibility = View.VISIBLE
+            cancel_button.alpha = 1f
+            pause_button.visibility = View.INVISIBLE
+        } else {
+            cancel_button.visibility = View.INVISIBLE
+            pause_button.visibility = View.VISIBLE
+            pause_button.alpha = 1f
+            pause_button.text = "Пауза"
+        }
+    }
+
+    private fun updateButtonsForBreak() {
+        cancel_button.visibility = View.VISIBLE
+        cancel_button.alpha = 1f
+        pause_button.visibility = View.INVISIBLE
+    }
 
     private fun startTimerIconAnimation() {
         stopTimerIconAnimation()
@@ -363,6 +397,7 @@ class TimerActivity : Fragment() {
                 if (isFirstSessionStart) {
                     cancel_button.visibility = View.VISIBLE
                     count_down.visibility = View.VISIBLE
+                    pause_button.visibility = View.INVISIBLE
 
                     animator_button = cancel_button.animate()
                         .alpha(0f)
@@ -370,9 +405,11 @@ class TimerActivity : Fragment() {
                         .withEndAction {
                             cancel_button.visibility = View.INVISIBLE
                             pause_button.visibility = View.VISIBLE
+                            pause_button.text = "Пауза"
                             pause_button.animate()
                                 .alpha(1f)
-                                .setDuration(5000)
+                                .setDuration(3000)
+                            isFirstSessionStart = false
                         }
                     animator_button?.start()
 
@@ -393,11 +430,8 @@ class TimerActivity : Fragment() {
 
                     animator_text?.start()
 
-                    isFirstSessionStart = false
                 } else {
-                    cancel_button.visibility = View.INVISIBLE
-                    pause_button.visibility = View.VISIBLE
-                    pause_button.alpha = 1f
+                    updateButtonsForWork(false)
                 }
 
                 viewModel.startWorkSession(mins)
@@ -422,7 +456,6 @@ class TimerActivity : Fragment() {
                 }
 
                 tag_dot.setColorFilter(ContextCompat.getColor(requireContext(), color))
-
             }, 3000)
         }
 
@@ -439,10 +472,15 @@ class TimerActivity : Fragment() {
 
         pause_button.setOnClickListener {
             if (viewModel.isPausedLive.value == true) {
+                resumeFromPause = true
                 viewModel.resumeTimer()
-                startTimerIconAnimation()
+
                 videoView.seekTo(viewModel.videoPosition)
-                videoView.start()
+                videoView.post {
+                    videoView.start()
+                }
+
+                startTimerIconAnimation()
                 pause_button.text = "Пауза"
             } else {
                 viewModel.pauseTimer()
